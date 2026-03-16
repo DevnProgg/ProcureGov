@@ -1,12 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%-- ================================================================
-     JSTL Tag Library Declarations
-     c   = Core Tags     (control flow, variables, output)
-     fmt = Formatting    (dates, numbers, i18n)
-     fn  = Functions     (string utilities)
-     lib = Custom Tags   (our own badge & genreIcon tags)
-     ================================================================ --%>
+
 <%@ taglib prefix="c"   uri="jakarta.tags.core"         %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"          %>
 <%@ taglib prefix="fn"  uri="jakarta.tags.functions"    %>
@@ -22,9 +16,6 @@
 </head>
 <body>
 
-<!-- ================================================================
-     HEADER
-     ================================================================ -->
 <header class="site-header">
     <div class="header-inner">
         <h1>&#128218; Library Book Manager</h1>
@@ -36,9 +27,6 @@
     </div>
 </header>
 
-<!-- ================================================================
-     STATS CARDS
-     ================================================================ -->
 <section class="stats-section">
 
     <div class="stat-card">
@@ -66,9 +54,6 @@
 
 </section>
 
-<!-- ================================================================
-     FILTER & SEARCH FORM
-     ================================================================ -->
 <section class="filter-section">
     <form action="${pageContext.request.contextPath}/books" method="get" class="filter-form">
 
@@ -110,9 +95,6 @@
     </form>
 </section>
 
-<!-- ================================================================
-     SEARCH RESULT NOTICE  (c:choose / c:when / c:otherwise)
-     ================================================================ -->
 <c:if test="${fn:length(searchTerm) > 0}">
     <div class="search-notice">
         <%-- fn:length  — JSTL function to get string/collection length --%>
@@ -122,9 +104,6 @@
     </div>
 </c:if>
 
-<!-- ================================================================
-     BOOK TABLE  (core JSTL: c:forEach, c:choose, c:when, c:otherwise)
-     ================================================================ -->
 <section class="table-section">
 
     <%-- c:choose / c:when / c:otherwise — Multi-branch conditional --%>
@@ -216,10 +195,6 @@
                 </tbody>
             </table>
 
-            <!-- ============================================================
-                 SUMMARY FOOTER
-                 Uses fmt:formatNumber for totals and fn functions
-                 ============================================================ -->
             <div class="summary-footer">
                 <p>
                     Showing <strong>${totalBooks}</strong> book(s) &nbsp;|&nbsp;
@@ -243,9 +218,6 @@
 
 </section>
 
-<!-- ================================================================
-     FOOTER
-     ================================================================ -->
 <footer class="site-footer">
     <p>
         Library Book Manager &copy;

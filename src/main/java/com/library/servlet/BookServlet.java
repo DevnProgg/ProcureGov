@@ -13,7 +13,7 @@ import java.util.*;
 @WebServlet("/books")
 public class BookServlet extends HttpServlet {
 
-    private List<Book> bookList = new ArrayList<>();
+    private final List<Book> bookList = new ArrayList<>();
 
     @Override
     public void init() {
