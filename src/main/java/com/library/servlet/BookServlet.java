@@ -17,7 +17,7 @@ public class BookServlet extends HttpServlet {
 
     @Override
     public void init() {
-        // Sample library data
+        // Sample data
         Calendar cal = Calendar.getInstance();
 
         cal.set(2024, Calendar.JANUARY, 15);

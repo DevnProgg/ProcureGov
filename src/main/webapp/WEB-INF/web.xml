@@ -7,7 +7,7 @@
 
     <display-name>Library Book Manager</display-name>
 
-    <!-- Register the custom TLD (Tag Library Descriptor) -->
+    <!-- Register the custom TLD -->
     <jsp-config>
         <taglib>
             <taglib-uri>http://library.com/tags</taglib-uri>
@@ -15,7 +15,7 @@
         </taglib>
     </jsp-config>
 
-    <!-- Default welcome page — redirects to /books -->
+    <!-- Default welcome page -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

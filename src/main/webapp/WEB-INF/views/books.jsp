@@ -20,7 +20,7 @@
     <div class="header-inner">
         <h1>&#128218; Library Book Manager</h1>
 
-        <%-- fmt:formatDate — Format current date using Formatting tag library --%>
+        <%-- fmt:formatDate Format current date using Formatting tag library --%>
         <p class="date-display">
             Today: <fmt:formatDate value="${today}" pattern="EEEE, dd MMMM yyyy" />
         </p>
@@ -45,9 +45,9 @@
     </div>
 
     <div class="stat-card value">
-        <%-- fmt:formatNumber — Format average price as currency --%>
+        <%-- fmt:formatNumber Format average price as currency --%>
         <span class="stat-number">
-            <fmt:formatNumber value="${avgPrice}" type="currency" currencySymbol="$" maxFractionDigits="2"/>
+            <fmt:formatNumber value="${avgPrice}" type="currency" currencySymbol="LSL" maxFractionDigits="2"/>
         </span>
         <span class="stat-label">Avg. Price</span>
     </div>
@@ -57,12 +57,12 @@
 <section class="filter-section">
     <form action="${pageContext.request.contextPath}/books" method="get" class="filter-form">
 
-        <%-- c:set — Store a variable for use later --%>
+        <%-- c:set Store a variable for use later --%>
         <c:set var="searchTerm" value="${searchTerm}" />
 
         <div class="filter-group">
             <label for="search">Search:</label>
-            <%-- c:out — Safe output (prevents XSS) --%>
+            <%-- c:out — Safe output --%>
             <input type="text" id="search" name="search"
                    value="<c:out value='${searchTerm}'/>"
                    placeholder="Title or Author...">
@@ -71,10 +71,10 @@
         <div class="filter-group">
             <label for="genre">Genre:</label>
             <select id="genre" name="genre">
-                <%-- c:forEach — Iterate over the genre list from the servlet --%>
+                <%-- c:forEach Iterate over the genre list from the servlet --%>
                 <c:forEach var="g" items="${genres}">
                     <option value="${g}"
-                        <%-- c:if — Conditional selected attribute --%>
+                        <%-- c:if Conditional selected attribute --%>
                         <c:if test="${g == selectedGenre}">selected</c:if>
                     >${g}</option>
                 </c:forEach>
@@ -97,8 +97,8 @@
 
 <c:if test="${fn:length(searchTerm) > 0}">
     <div class="search-notice">
-        <%-- fn:length  — JSTL function to get string/collection length --%>
-        <%-- fn:toUpperCase — JSTL function for string transformation --%>
+        <%-- fn:length JSTL function to get string/collection length --%>
+        <%-- fn:toUpperCase JSTL function for string transformation --%>
         Showing <strong>${totalBooks}</strong> result(s) for
         "<strong><c:out value="${fn:toUpperCase(searchTerm)}"/></strong>"
     </div>
@@ -106,7 +106,7 @@
 
 <section class="table-section">
 
-    <%-- c:choose / c:when / c:otherwise — Multi-branch conditional --%>
+    <%-- c:choose / c:when / c:otherwise Multi-branch conditional --%>
     <c:choose>
         <c:when test="${totalBooks == 0}">
             <div class="no-results">
@@ -146,7 +146,7 @@
 
                         <tr class="${rowClass} <c:if test='${!book.available}'>row-checkedout</c:if>">
 
-                            <%-- varStatus.count gives 1-based row number --%>
+                            <%-- varStatus.count gives 1 based row number --%>
                             <td class="td-num">${status.count}</td>
 
                             <%-- Custom Tag: lib:genreIcon --%>
@@ -175,7 +175,7 @@
                             <td class="td-price">
                                 <fmt:formatNumber value="${book.price}"
                                                   type="currency"
-                                                  currencySymbol="$"
+                                                  currencySymbol="LSL"
                                                   maxFractionDigits="2"/>
                             </td>
 
@@ -202,14 +202,14 @@
                     <strong>
                         <fmt:formatNumber value="${totalValue}"
                                           type="currency"
-                                          currencySymbol="$"
+                                          currencySymbol="LSL"
                                           maxFractionDigits="2"/>
                     </strong>
                 </p>
 
-                <%-- fn:contains — check if search string contains keyword --%>
+                <%-- fn:contains check if search string contains keyword --%>
                 <c:if test="${fn:contains(fn:toLowerCase(searchTerm), 'code')}">
-                    <p class="tip">&#128161; Tip: Showing books related to "code".</p>
+                    <p class="tip">Tip: Showing books related to "code".</p>
                 </c:if>
             </div>
 

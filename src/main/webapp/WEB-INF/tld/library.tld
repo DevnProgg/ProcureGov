@@ -9,10 +9,9 @@
     <short-name>lib</short-name>
     <uri>http://library.com/tags</uri>
 
-    <!-- =========================================================
+    <!--
          Custom Tag: badge
-         Renders a colored availability status badge
-         ========================================================= -->
+         Renders a colored availability status badge -->
     <tag>
         <name>badge</name>
         <tag-class>com.library.tags.BadgeTag</tag-class>
@@ -27,10 +26,10 @@
         </attribute>
     </tag>
 
-    <!-- =========================================================
+    <!--
          Custom Tag: genreIcon
          Renders an emoji icon representing the book genre
-         ========================================================= -->
+        -->
     <tag>
         <name>genreIcon</name>
         <tag-class>com.library.tags.GenreIconTag</tag-class>

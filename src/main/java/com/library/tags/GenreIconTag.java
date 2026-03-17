@@ -21,21 +21,12 @@ public class GenreIconTag extends SimpleTagSupport {
     @Override
     public void doTag() throws JspException, IOException {
         JspWriter out = getJspContext().getOut();
-        String icon;
-        switch (genre != null ? genre.toLowerCase() : "") {
-            case "programming":
-            case "computer science":
-                icon = "&#128187;"; // 💻
-                break;
-            case "fiction":
-                icon = "&#128218;"; // 📚
-                break;
-            case "dystopia":
-                icon = "&#127758;"; // 🌎
-                break;
-            default:
-                icon = "&#128214;"; // 📖
-        }
+        String icon = switch (genre != null ? genre.toLowerCase() : "") {
+            case "programming", "computer science" -> "&#128187;"; // 💻
+            case "fiction" -> "&#128218;"; // 📚
+            case "dystopia" -> "&#127758;"; // 🌎
+            default -> "&#128214;"; // 📖
+        };
         out.write("<span class=\"genre-icon\" title=\"" + escapeHtml(genre) + "\">" + icon + "</span>");
     }
 
