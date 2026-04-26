@@ -9,39 +9,5 @@
     <short-name>lib</short-name>
     <uri>http://library.com/tags</uri>
 
-    <!--
-         Custom Tag: badge
-         Renders a colored availability status badge -->
-    <tag>
-        <name>badge</name>
-        <tag-class>com.library.tags.BadgeTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Renders a colored badge showing book availability status</description>
-        <attribute>
-            <name>available</name>
-            <required>true</required>
-            <rtexprvalue>true</rtexprvalue>
-            <type>boolean</type>
-            <description>Whether the book is currently available</description>
-        </attribute>
-    </tag>
-
-    <!--
-         Custom Tag: genreIcon
-         Renders an emoji icon representing the book genre
-        -->
-    <tag>
-        <name>genreIcon</name>
-        <tag-class>com.library.tags.GenreIconTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Renders a genre-appropriate icon for the book</description>
-        <attribute>
-            <name>genre</name>
-            <required>true</required>
-            <rtexprvalue>true</rtexprvalue>
-            <type>java.lang.String</type>
-            <description>The genre name of the book</description>
-        </attribute>
-    </tag>
 
 </taglib>
