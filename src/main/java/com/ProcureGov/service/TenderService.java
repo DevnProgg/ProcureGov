@@ -16,31 +16,35 @@ public class TenderService {
         this.tenderRepository = new TenderOfferRepository();
     }
 
-    public TenderStatsDTO getTenderStats() {
+    public TenderStatsDTO getTenderStats() throws Exception {
         return tenderRepository.getTenderStats();
     }
 
-    public List<TenderOffer> getOpenTenders(int limit) {
+    public List<TenderOffer> getOpenTenders(int limit) throws Exception {
         return tenderRepository.findOpenTenders(limit);
     }
 
-    public List<TenderOffer> getAllOpenTenders() {
+    public List<TenderOffer> getTendersByStatus(String status) throws Exception {
+        return tenderRepository.getTendersByStatus(status);
+    }
+
+    public List<TenderOffer> getAllOpenTenders() throws Exception {
         return tenderRepository.findAllOpenTenders();
     }
 
-    public List<TenderOffer> getAllTenders() {
+    public List<TenderOffer> getAllTenders() throws Exception {
         return tenderRepository.findAll();
     }
 
-    public List<TenderOffer> getFilteredTenders(String status, String category) {
+    public List<TenderOffer> getFilteredTenders(String status, String category) throws Exception {
         return tenderRepository.findFilteredTenders(status, category);
     }
 
-    public List<String> getAllCategories() {
+    public List<String> getAllCategories() throws Exception {
         return tenderRepository.findAllCategories();
     }
 
-    public TenderOffer getTenderById(int tenderId) {
+    public TenderOffer getTenderById(int tenderId) throws Exception {
         return tenderRepository.findById(tenderId);
     }
 
@@ -52,7 +56,7 @@ public class TenderService {
         tenderRepository.updateStatus(tenderId, status);
     }
 
-    public List<TenderOffer> getOpenTendersExcludingDrafts(int limit) {
+    public List<TenderOffer> getOpenTendersExcludingDrafts(int limit) throws Exception {
         return tenderRepository.findOpenTendersExcludingDrafts(limit);
     }
 
@@ -79,15 +83,15 @@ public class TenderService {
                 tender.getCreated_by() == userId;
     }
 
-    public List<TenderOffer> getAllOpenTendersExcludingDrafts() {
+    public List<TenderOffer> getAllOpenTendersExcludingDrafts() throws Exception {
         return tenderRepository.findAllOpenTendersExcludingDrafts();
     }
 
-    public List<TenderOffer> getAllTendersExcludingDrafts() {
+    public List<TenderOffer> getAllTendersExcludingDrafts() throws Exception {
         return tenderRepository.findAllExcludingDrafts();
     }
 
-    public List<TenderOffer> getFilteredTendersExcludingDrafts(String status, String category) {
+    public List<TenderOffer> getFilteredTendersExcludingDrafts(String status, String category) throws Exception {
         return tenderRepository.findFilteredTendersExcludingDrafts(status, category);
     }
 
@@ -96,53 +100,24 @@ public class TenderService {
         return tender != null && "DRAFT".equals(tender.getStatus());
     }
 
-    public List<CategoryStatsDTO> getCategoryStats() {
+    public List<CategoryStatsDTO> getCategoryStats() throws Exception {
         return tenderRepository.getTenderStatsByCategory();
     }
 
-    public int getDraftCount() {
-        try {
-            return tenderRepository.getDraftCount();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
-        }
-    }
-
-    public List<TenderOffer> getTendersClosingWithin(int hours) {
-        try {
+    public List<TenderOffer> getTendersClosingWithin(int hours) throws Exception {
             return tenderRepository.findTendersClosingWithin(hours);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
     }
 
-    public int getPendingEvaluationCount() {
-        try {
+    public int getPendingEvaluationCount() throws Exception {
             return tenderRepository.getPendingEvaluationCount();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
-        }
     }
 
-    public int getStaleDraftCount(int days) {
-        try {
+    public int getStaleDraftCount(int days) throws  Exception {
             return tenderRepository.getStaleDraftCount(days);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
         }
-    }
 
-    public List<TenderOffer> getDraftTenders() {
-        try {
+    public List<TenderOffer> getDraftTenders() throws Exception {
             return tenderRepository.findDraftTenders();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
     }
 
 }

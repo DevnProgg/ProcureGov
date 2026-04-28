@@ -14,7 +14,7 @@ public class AwardRepository extends BaseRepository{
     /**
      * Create a new award
      */
-    public boolean createAward(Award award) {
+    public boolean createAward(Award award) throws Exception{
         String sql = "INSERT INTO Awards (tender_id, bid_id, awarded_value, officer_justification, awarded_by) " +
                 "VALUES (?, ?, ?, ?, ?)";
 
@@ -38,19 +38,13 @@ public class AwardRepository extends BaseRepository{
                 return true;
             }
             return false;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
     /**
      * Get award by ID
      */
-    public Award getAwardById(int awardId) {
+    public Award getAwardById(int awardId) throws Exception{
         String sql = "SELECT * FROM Awards WHERE award_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -63,10 +57,6 @@ public class AwardRepository extends BaseRepository{
                     return extractAwardFromResultSet(rs);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return null;
     }
@@ -74,7 +64,7 @@ public class AwardRepository extends BaseRepository{
     /**
      * Get award by tender ID
      */
-    public Award getAwardByTenderId(int tenderId) {
+    public Award getAwardByTenderId(int tenderId)  throws Exception{
         String sql = "SELECT * FROM Awards WHERE tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -87,10 +77,6 @@ public class AwardRepository extends BaseRepository{
                     return extractAwardFromResultSet(rs);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return null;
     }
@@ -98,7 +84,7 @@ public class AwardRepository extends BaseRepository{
     /**
      * Get all awards
      */
-    public List<AwardDTO> getAllAwards() {
+    public List<AwardDTO> getAllAwards() throws Exception {
         String sql = "SELECT " +
                 "   a.award_id, " +
                 "   a.tender_id, " +
@@ -123,7 +109,7 @@ public class AwardRepository extends BaseRepository{
                 "JOIN TenderBids tb ON tb.bid_id = a.bid_id " +
                 "JOIN Suppliers s ON s.supplier_id = tb.supplier_id " +
                 "JOIN Employees e ON e.employee_id = a.awarded_by " +
-                "LEFT JOIN EvaluatorBidLogs ebl ON ebl.bid_id = tb.bid_id " +
+                "LEFT JOIN bidevaluations ebl ON ebl.bid_id = tb.bid_id " +
                 "GROUP BY a.award_id, t.tender_id, s.supplier_id, tb.bid_id ";
 
         List<AwardDTO> awards = new ArrayList<>();
@@ -135,10 +121,6 @@ public class AwardRepository extends BaseRepository{
             while (rs.next()) {
                 awards.add(extractAwardDTOFromResultSet(rs));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return awards;
     }
@@ -146,7 +128,7 @@ public class AwardRepository extends BaseRepository{
     /**
      * Get awards by supplier ID (for supplier portal)
      */
-    public List<AwardDTO> getAwardsBySupplierId(int supplierId) {
+    public List<AwardDTO> getAwardsBySupplierId(int supplierId) throws Exception{
         String sql = "SELECT " +
                 "   a.award_id, " +
                 "   a.tender_id, " +
@@ -187,10 +169,6 @@ public class AwardRepository extends BaseRepository{
                     awards.add(extractAwardDTOFromResultSet(rs));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return awards;
     }
@@ -198,7 +176,7 @@ public class AwardRepository extends BaseRepository{
     /**
      * Get recent awards (for dashboard)
      */
-    public List<AwardDTO> getRecentAwards(int limit) {
+    public List<AwardDTO> getRecentAwards(int limit) throws Exception {
         String sql = "SELECT " +
                 "   a.award_id, " +
                 "   a.tender_id, " +
@@ -239,10 +217,6 @@ public class AwardRepository extends BaseRepository{
                     awards.add(extractAwardDTOFromResultSet(rs));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return awards;
     }
@@ -250,7 +224,7 @@ public class AwardRepository extends BaseRepository{
     /**
      * Check if a tender already has an award
      */
-    public boolean hasAwardForTender(int tenderId) {
+    public boolean hasAwardForTender(int tenderId) throws Exception {
         String sql = "SELECT COUNT(*) FROM Awards WHERE tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -263,46 +237,8 @@ public class AwardRepository extends BaseRepository{
                     return rs.getInt(1) > 0;
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return false;
-    }
-
-    /**
-     * Delete award
-     */
-    public boolean deleteAward(int awardId) {
-        String sql = "DELETE FROM Awards WHERE award_id = ?";
-
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, awardId);
-            return pstmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Generate award notice number
-     */
-    public String generateAwardNoticeNumber(int awardId, int year) {
-        return String.format("PG-AWARD-%04d-%d", awardId, year);
-    }
-
-    /**
-     * Generate contract number
-     */
-    public String generateContractNumber(int tenderId, int supplierId, int year) {
-        return String.format("PG-CONT-%04d-%04d-%d", tenderId, supplierId, year);
     }
 
     // Helper methods for extracting data from ResultSet
@@ -357,7 +293,7 @@ public class AwardRepository extends BaseRepository{
      * Get supplier information by bid ID
      * This method joins through TenderBids -> Suppliers to get the supplier who submitted the bid
      */
-    public SupplierData getSupplierByBidId(int bidId) {
+    public SupplierData getSupplierByBidId(int bidId) throws Exception{
         String sql = "SELECT vsd.* FROM view_supplier_data vsd " +
                 "JOIN TenderBids tb ON vsd.supplier_id = tb.supplier_id " +
                 "WHERE tb.bid_id = ?";
@@ -372,47 +308,14 @@ public class AwardRepository extends BaseRepository{
                     return mapResultSetToSupplierData(rs);
                 }
             }
-
-        } catch (Exception e) {
-            System.err.println("Error fetching supplier by bid ID: " + e.getMessage());
-            e.printStackTrace();
         }
-
-        return null;
-    }
-
-    /**
-     * Alternative method: Get supplier by tender ID (through award)
-     */
-    public SupplierData getSupplierByTenderId(int tenderId) {
-        String sql = "SELECT vsd.* FROM view_supplier_data vsd " +
-                "JOIN Awards a ON a.tender_id = ? " +
-                "JOIN TenderBids tb ON a.bid_id = tb.bid_id " +
-                "WHERE vsd.supplier_id = tb.supplier_id";
-
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, tenderId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToSupplierData(rs);
-                }
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error fetching supplier by tender ID: " + e.getMessage());
-            e.printStackTrace();
-        }
-
         return null;
     }
 
     /**
      * Get tender details by tender ID
      */
-    public TenderOffer getTenderById(int tenderId) {
+    public TenderOffer getTenderById(int tenderId) throws Exception{
         String sql = "SELECT * FROM TenderOffers WHERE tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -425,21 +328,14 @@ public class AwardRepository extends BaseRepository{
                     return mapResultSetToTender(rs);
                 }
             }
-
-        } catch (SQLException e) {
-            System.err.println("Error fetching tender by ID: " + e.getMessage());
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
-
         return null;
     }
 
     /**
      * Update email notification status
      */
-    public void updateEmailStatus(int awardId, String status, String errorMessage) {
+    public void updateEmailStatus(int awardId, String status, String errorMessage) throws Exception{
         String sql = "UPDATE Awards SET email_notification_status = ?, " +
                 "email_sent_at = ?, email_error_message = ? " +
                 "WHERE award_id = ?";
@@ -453,17 +349,13 @@ public class AwardRepository extends BaseRepository{
             stmt.setInt(4, awardId);
 
             stmt.executeUpdate();
-
-        } catch (Exception e) {
-            System.err.println("Error updating email status: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
     /**
      * Get email notification status for an award
      */
-    public String getEmailStatus(int awardId) {
+    public String getEmailStatus(int awardId) throws Exception{
         String sql = "SELECT email_notification_status FROM Awards WHERE award_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -476,46 +368,16 @@ public class AwardRepository extends BaseRepository{
                     return rs.getString("email_notification_status");
                 }
             }
-
-        } catch (Exception e) {
-            System.err.println("Error fetching email status: " + e.getMessage());
-            e.printStackTrace();
         }
-
         return null;
     }
 
     /**
      * Update email sent status (simplified version)
      */
-    public void updateEmailSentStatus(int awardId, boolean sent) {
+    public void updateEmailSentStatus(int awardId, boolean sent) throws Exception{
         String status = sent ? "SENT" : "FAILED";
         updateEmailStatus(awardId, status, null);
-    }
-
-    /**
-     * Log activity for audit trail
-     */
-    public void logActivity(int awardId, String activityType, String status,
-                            String description, int createdBy) {
-        String sql = "INSERT INTO activity_logs (award_id, activity_type, status, description, created_by) " +
-                "VALUES (?, ?, ?, ?, ?)";
-
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, awardId);
-            stmt.setString(2, activityType);
-            stmt.setString(3, status);
-            stmt.setString(4, description);
-            stmt.setInt(5, createdBy);
-
-            stmt.executeUpdate();
-
-        } catch (Exception e) {
-            System.err.println("Error logging activity: " + e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     // Helper mapping methods

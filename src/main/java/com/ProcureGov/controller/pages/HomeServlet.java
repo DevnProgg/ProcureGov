@@ -50,7 +50,6 @@ public class HomeServlet extends HttpServlet {
             request.setAttribute("pageDescription", "Access real-time tender listings, transparent bidding, and authoritative documentation for government infrastructure projects.");
 
         } catch (Exception e) {
-            e.printStackTrace();
             request.setAttribute("error", "Unable to load homepage data. Please try again later.");
 
             // Set default empty values to prevent JSP errors

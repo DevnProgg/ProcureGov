@@ -86,7 +86,6 @@ public class TenderListServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/pages/tender_directory.jsp").forward(request, response);
 
         } catch (Exception e) {
-            e.printStackTrace();
             request.setAttribute("error", "Unable to load tender registry");
             request.getRequestDispatcher("/WEB-INF/views/pages/tender_directory.jsp").forward(request, response);
         }

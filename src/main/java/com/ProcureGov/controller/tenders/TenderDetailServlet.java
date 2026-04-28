@@ -53,18 +53,10 @@ public class TenderDetailServlet extends HttpServlet {
 
             // Check if user is logged in and has already bid on this tender
             HttpSession session = request.getSession(false);
-            if (session != null && session.getAttribute("user") instanceof  SupplierData) {
-                SupplierData supplier = (SupplierData) session.getAttribute("user");
-                if (supplier != null) {
-                    boolean hasBid = bidService.hasSupplierBidOnTender(supplier.getSupplier_id(), tenderId);
-                    request.setAttribute("hasBid", hasBid);
-                    request.setAttribute("userRole", "SUPPLIER");
-                }else if (session != null && session.getAttribute("user") instanceof EmployeeData) {
-                    EmployeeData employee = (EmployeeData) session.getAttribute("user");
-                    if (employee != null) {
-                        request.setAttribute("userRole", employee.getRole_name());
-                    }
-                }
+            if (session != null && session.getAttribute("user") instanceof SupplierData supplier) {
+                boolean hasBid = bidService.hasSupplierBidOnTender(supplier.getSupplier_id(), tenderId);
+                request.setAttribute("hasBid", hasBid);
+                request.setAttribute("userRole", "SUPPLIER");
             }
 
             if ("DRAFT".equals(tender.getStatus())) {
@@ -82,7 +74,6 @@ public class TenderDetailServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid tender ID");
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

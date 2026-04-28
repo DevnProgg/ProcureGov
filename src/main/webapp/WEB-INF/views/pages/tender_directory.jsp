@@ -21,14 +21,14 @@
         <main class="pg-content">
             <c:if test="${sessionScope.user.role_name eq 'PROCUREMENT_OFFICER'}">
                 <!-- Create Button -->
-                <a href="${pageContext.request.contextPath}/officer/create-tender">
                     <div class="no-print" style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+                        <a href="${pageContext.request.contextPath}/officer/create-tender">
                         <button class="btn btn-primary">
                             <span class="material-symbols-outlined" style="font-size: 1rem;">print</span>
                             Create New Tender Offer
                         </button>
+                        </a>
                     </div>
-                </a>
             </c:if>
 
             <!-- Header + Filters in one row -->

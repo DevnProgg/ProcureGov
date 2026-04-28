@@ -18,25 +18,6 @@ public class AuthService {
     private final RoleRepository roleRepository = new RoleRepository();
 
     /*
-    Employee -> user -> account
-     */
-    void CreateOfficerAccount() throws Exception{
-        User user = new User();
-        Employee emp = new Employee();
-        emp.setFull_names("Lauren Khalapa Qokolo");
-        emp.setPhone_number("+266 5327 8674");
-        emp.setGender("Male");
-        Account acc = new Account();
-        acc.setUsername("lauren@procurement.gov.ls");
-        acc.setPassword_hash("lauren@123");
-
-        Employee e = employeeRepository.create(emp);
-        user.setEmployee_id(e.getEmployee_id());
-        userRepository.create(user);
-        acc.setUser_id(user.getUser_id());
-        accountRepository.createAccount(acc);
-    }
-    /*
     Supplier -> user -> account
      */
     public void RegisterSupplierAccount(Account acc, Supplier supplier) throws Exception {

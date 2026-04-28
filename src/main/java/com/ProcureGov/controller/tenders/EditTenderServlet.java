@@ -95,7 +95,6 @@ public class EditTenderServlet extends HttpServlet {
             session.setAttribute("errorMessage", "Invalid tender ID");
             resp.sendRedirect(req.getContextPath() + "/app/tenders");
         } catch (Exception e) {
-            e.printStackTrace();
             session.setAttribute("errorMessage", "Error loading tender: " + e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/app/tenders");
         }
@@ -162,8 +161,11 @@ public class EditTenderServlet extends HttpServlet {
                 // Validate file type
                 String contentType = filePart.getContentType();
                 String fileName = extractFileName(filePart);
-                if (!"application/pdf".equals(contentType) && !fileName.toLowerCase().endsWith(".pdf")) {
-                    throw new IllegalArgumentException("Only PDF files are allowed");
+                if (!"application/pdf".equals(contentType)) {
+                    assert fileName != null;
+                    if (!fileName.toLowerCase().endsWith(".pdf")) {
+                        throw new IllegalArgumentException("Only PDF files are allowed");
+                    }
                 }
 
                 // Delete old file if exists
@@ -171,7 +173,9 @@ public class EditTenderServlet extends HttpServlet {
                     String oldFilePath = getServletContext().getRealPath("") + File.separator + filePath;
                     File oldFile = new File(oldFilePath);
                     if (oldFile.exists()) {
-                        oldFile.delete();
+                        if(!oldFile.delete()){
+                            throw new IllegalArgumentException("Cannot delete old file");
+                        }
                     }
                 }
 
@@ -179,10 +183,12 @@ public class EditTenderServlet extends HttpServlet {
                 String uploadDir = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
                 File uploadDirFile = new File(uploadDir);
                 if (!uploadDirFile.exists()) {
-                    uploadDirFile.mkdirs();
+                    if(!uploadDirFile.mkdirs()){
+                        throw new IllegalArgumentException("Cannot create upload directory");
+                    }
                 }
 
-                String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
+                String uniqueFileName = UUID.randomUUID() + "_" + fileName;
                 filePath = UPLOAD_DIR + File.separator + uniqueFileName;
                 Path fileFullPath = Paths.get(uploadDir, uniqueFileName);
                 Files.copy(filePart.getInputStream(), fileFullPath, StandardCopyOption.REPLACE_EXISTING);

@@ -24,14 +24,11 @@ public class EmailUtility {
         // Load from environment variables
         this.host = System.getenv().getOrDefault("EMAIL_HOST", "smtp.gmail.com");
         this.port = Integer.parseInt(System.getenv().getOrDefault("EMAIL_PORT", "587"));
-        this.username = System.getenv("devnprogg@gmai.com");
-        this.password = System.getenv("Lauren@2006");
+        this.username = "devnprogg@gmail.com";
+        this.password = "Lauren@2006";
         this.useAuth = Boolean.parseBoolean(System.getenv().getOrDefault("EMAIL_AUTH", "true"));
         this.useTLS = Boolean.parseBoolean(System.getenv().getOrDefault("EMAIL_TLS", "true"));
 
-        if (username == null || password == null) {
-            logger.warning("Email credentials not configured. Email notifications will be disabled.");
-        }
     }
 
     public boolean isConfigured() {
@@ -48,9 +45,9 @@ public class EmailUtility {
         }
 
         Properties props = new Properties();
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", port);
-        props.put("mail.smtp.auth", String.valueOf(useAuth));
+        props.put("mail.smtp.host", this.host);
+        props.put("mail.smtp.port", this.port);
+        props.put("mail.smtp.auth", String.valueOf(this.useAuth));
 
         if (useTLS) {
             props.put("mail.smtp.starttls.enable", "true");

@@ -63,7 +63,6 @@ public class SupplierBidsServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
@@ -92,7 +91,9 @@ public class SupplierBidsServlet extends HttpServlet {
                 String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
+                    if(!uploadDir.mkdirs()) {
+                        throw new IOException("Failed to create upload directory");
+                    }
                 }
 
                 String filePath = uploadPath + File.separator + System.currentTimeMillis() + "_" + fileName;
@@ -115,9 +116,7 @@ public class SupplierBidsServlet extends HttpServlet {
                     request.setAttribute("error", "Failed to submit bid");
                     doGet(request, response);
                 }
-
             } catch (Exception e) {
-                e.printStackTrace();
                 request.setAttribute("error", "Error submitting bid: " + e.getMessage());
                 doGet(request, response);
             }

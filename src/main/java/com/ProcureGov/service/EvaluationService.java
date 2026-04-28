@@ -9,15 +9,15 @@ public class EvaluationService {
         this.evaluationRepository = new EvaluationRepository();
     }
 
-    public int getActiveEvaluationCount() {
+    public int getActiveEvaluationCount() throws Exception {
         return evaluationRepository.getActiveEvaluationCount();
     }
 
-    public int getCompletedEvaluationCount() {
+    public int getCompletedEvaluationCount()  throws Exception {
         return evaluationRepository.getCompletedEvaluationCount();
     }
 
-    public double getAverageEvaluationScore() {
+    public double getAverageEvaluationScore() throws Exception {
         return evaluationRepository.getAverageEvaluationScore();
     }
 }

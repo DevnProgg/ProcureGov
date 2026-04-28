@@ -579,23 +579,10 @@
                             <h3 class="text-title">Quick Actions</h3>
                         </div>
                         <div class="pg-card__body" style="display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0;">
-                            <!-- Award Notice Links -->
-                            <c:if test="${not empty tender.awardId}">
-                                <a href="${pageContext.request.contextPath}/app/awards/view?id=${tender.awardId}"
-                                   class="btn btn-ghost btn-full" style="justify-content: flex-start;">
-                                    <span class="material-symbols-outlined">description</span>
-                                    View Award Notice
-                                </a>
-                                <a href="${pageContext.request.contextPath}/app/awards/download?id=${tender.awardId}"
-                                   class="btn btn-ghost btn-full" style="justify-content: flex-start;">
-                                    <span class="material-symbols-outlined">download</span>
-                                    Download Award PDF
-                                </a>
-                            </c:if>
 
                             <!-- Tender Notice Link -->
                             <c:if test="${not empty tender.notice_file_path}">
-                                <a href="${pageContext.request.contextPath}/app/tenders/notice?tenderId=${tender.tender_id}"
+                                <a href="${pageContext.request.contextPath}/${bid.document_file_path}"
                                    class="btn btn-ghost btn-full" style="justify-content: flex-start;">
                                     <span class="material-symbols-outlined">description</span>
                                     View Tender Notice

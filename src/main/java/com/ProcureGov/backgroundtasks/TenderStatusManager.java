@@ -6,8 +6,6 @@ import com.ProcureGov.repository.TenderOfferRepository;
 import javax.sql.DataSource;
 import java.sql.*;
 
-import static com.ProcureGov.repository.BaseRepository.getDataSource;
-import static java.lang.IO.print;
 import static java.lang.IO.println;
 
 public class TenderStatusManager {
@@ -24,48 +22,60 @@ public class TenderStatusManager {
     public static void closeExpiredTenders() {
         System.out.println("Starting to close expired tenders...");
 
-        String sql = "SELECT tender_id FROM TenderOffers " +
-                "WHERE expiry_datetime <= NOW() " +
+        String selectSql = "SELECT tender_id FROM TenderOffers " +
+                "WHERE expiry_datetime <= ? " +
                 "AND status = 'OPEN' " +
                 "ORDER BY publish_datetime DESC";
 
         int closedCount = 0;
 
+        // Use a single consistent timestamp
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
         try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false); // Start transaction
+            conn.setAutoCommit(false);
 
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (
+                    PreparedStatement selectStmt = conn.prepareStatement(selectSql)
+            ) {
 
-                ResultSet rs = stmt.executeQuery();
+                selectStmt.setTimestamp(1, now);
 
-                // Process all expired tenders in a batch for efficiency
-                StringBuilder batchIds = new StringBuilder();
+                try (ResultSet rs = selectStmt.executeQuery()) {
 
-                while (rs.next()) {
-                    int tenderId = rs.getInt("tender_id");
-                    tenderOfferRepository.updateStatus(tenderId, "CLOSED");
-                    closedCount ++;
+                    while (rs.next()) {
+                        int tenderId = rs.getInt("tender_id");
 
-                    // Log progress
-                    if (closedCount % 2 == 0) {
-                        System.out.println("Closed " + closedCount + " tenders so far...");
+                        int updated = updateStatusIfExpired(
+                                conn, tenderId, now
+                        );
+
+                        if (updated > 0) {
+                            closedCount++;
+
+                            if (closedCount % 2 == 0) {
+                                System.out.println("Closed " + closedCount + " tenders so far...");
+                            }
+                        } else {
+                            System.out.println("Skipped tender " + tenderId +
+                                    " (no longer eligible for closing)");
+                        }
                     }
                 }
 
-                conn.commit(); // Commit transaction
+                conn.commit();
                 System.out.println("Successfully closed " + closedCount + " expired tenders");
 
             } catch (SQLException e) {
-                conn.rollback(); // Rollback on error
+                conn.rollback();
                 throw e;
             }
 
         } catch (SQLException e) {
             System.err.println("Error closing expired tenders: " + e.getMessage());
             e.printStackTrace();
-            //TODO : add proper logging
         } catch (Exception e) {
-            System.err.println("Error closing expired tenders: " + e.getMessage());
+            System.err.println("Unexpected error: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -96,4 +106,22 @@ public class TenderStatusManager {
             e.printStackTrace();
         }
     }
+
+    private static int updateStatusIfExpired(Connection conn, int tenderId, Timestamp now) throws SQLException {
+        String sql = "UPDATE TenderOffers " +
+                "SET status = ? " +
+                "WHERE tender_id = ? " +
+                "AND expiry_datetime <= ? " +
+                "AND status = 'OPEN'";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "CLOSED");
+            stmt.setInt(2, tenderId);
+            stmt.setTimestamp(3, now);
+
+            return stmt.executeUpdate();
+        }
+    }
+
 }

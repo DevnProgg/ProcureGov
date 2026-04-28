@@ -1,5 +1,6 @@
 package com.ProcureGov.service;
 
+import com.ProcureGov.backgroundtasks.TenderStatusManager;
 import com.ProcureGov.dto.AwardDTO;
 import com.ProcureGov.model.*;
 import com.ProcureGov.repository.AwardRepository;
@@ -23,7 +24,7 @@ public class AwardService {
     /**
      * Create a new award and send email notification to supplier
      */
-    public boolean createAward(Award award) {
+    public boolean createAward(Award award) throws Exception{
         // Validate award data
         if (award.getTender_id() <= 0 || award.getBid_id() <= 0 || award.getAwarded_by() <= 0) {
             logger.warning("Invalid award data for tender_id: " + award.getTender_id());
@@ -41,6 +42,7 @@ public class AwardService {
 
         if (awardCreated) {
             // Send email notification to the supplier
+            TenderStatusManager.placeTenderCompleted(award.getTender_id());
             sendAwardNotificationEmail(award);
             logger.info("Award created and notification sent for award_id: " + award.getAward_id());
         }
@@ -51,9 +53,8 @@ public class AwardService {
     /**
      * Send email notification to supplier about the award
      */
-    private void sendAwardNotificationEmail(Award award) {
+    private void sendAwardNotificationEmail(Award award) throws Exception{
         try {
-            // Get supplier details (you'll need to implement these methods in your DAO/repository)
             SupplierData supplier = getSupplierByBidId(award.getBid_id());
             TenderOffer tender = getTenderById(award.getTender_id());
 
@@ -84,8 +85,11 @@ public class AwardService {
                 boolean emailSent = emailUtility.sendEmail(supplierEmail, subject, emailBody);
                 if (emailSent) {
                     logger.info("Award notification email sent successfully to: " + supplierEmail);
-                    // Optionally update the award record to indicate email was sent
-                    awardDAO.updateEmailSentStatus(award.getAward_id(), true);
+                    try {
+                        awardDAO.updateEmailSentStatus(award.getAward_id(), true);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 } else {
                     logger.warning("Failed to send award notification email to: " + supplierEmail);
                 }
@@ -93,61 +97,56 @@ public class AwardService {
 
         } catch (Exception e) {
             logger.severe("Error sending award notification email: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    // Helper methods (you'll need to implement these based on your data layer)
-    private SupplierData getSupplierByBidId(int bidId) {
-        // This should fetch supplier details from your database based on the bid
-        // You might need to create a SupplierRepository or add this method to AwardRepository
+    private SupplierData getSupplierByBidId(int bidId) throws Exception{
         return awardDAO.getSupplierByBidId(bidId);
     }
 
-    private TenderOffer getTenderById(int tenderId) {
-        // This should fetch tender details from your database
+    private TenderOffer getTenderById(int tenderId) throws Exception{
         return awardDAO.getTenderById(tenderId);
     }
 
     /**
      * Get all awards (public view)
      */
-    public List<AwardDTO> getAllAwards() {
+    public List<AwardDTO> getAllAwards() throws Exception{
         return awardDAO.getAllAwards();
     }
 
     /**
      * Get awards by supplier ID
      */
-    public List<AwardDTO> getAwardsBySupplierId(int supplierId) {
+    public List<AwardDTO> getAwardsBySupplierId(int supplierId) throws Exception{
         return awardDAO.getAwardsBySupplierId(supplierId);
     }
 
     /**
      * Get recent awards for dashboard
      */
-    public List<AwardDTO> getRecentAwards(int limit) {
+    public List<AwardDTO> getRecentAwards(int limit) throws Exception{
         return awardDAO.getRecentAwards(limit);
     }
 
     /**
      * Get award by ID
      */
-    public Award getAwardById(int awardId) {
+    public Award getAwardById(int awardId) throws Exception {
         return awardDAO.getAwardById(awardId);
     }
 
     /**
      * Get award by tender ID
      */
-    public Award getAwardByTenderId(int tenderId) {
+    public Award getAwardByTenderId(int tenderId) throws Exception{
         return awardDAO.getAwardByTenderId(tenderId);
     }
 
     /**
      * Check if tender has award
      */
-    public boolean hasAwardForTender(int tenderId) {
+    public boolean hasAwardForTender(int tenderId) throws Exception{
         return awardDAO.hasAwardForTender(tenderId);
     }
 }

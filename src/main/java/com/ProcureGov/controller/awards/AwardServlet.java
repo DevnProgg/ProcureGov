@@ -15,8 +15,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
 @WebServlet("/app/awards/*")
 public class AwardServlet extends HttpServlet {
@@ -44,6 +46,13 @@ public class AwardServlet extends HttpServlet {
             if (pathInfo == null || pathInfo.equals("/")) {
                 // Public awards listing (all awarded tenders)
                 List<AwardDTO> awards = awardService.getAllAwards();
+
+                // Calculate total awarded value
+                BigDecimal totalValue = awards.stream()
+                        .map(AwardDTO::getAwardedValue)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                request.setAttribute("totalAwardedValue", totalValue);
                 request.setAttribute("awards", awards);
                 request.setAttribute("pageTitle", "Award Notices");
                 request.setAttribute("pageSection", "Public Notices");
@@ -170,7 +179,7 @@ public class AwardServlet extends HttpServlet {
                 boolean success = awardService.createAward(award);
 
                 if (success) {
-                    response.sendRedirect(request.getContextPath() + "/app/awards?success=Award created successfully");
+                    response.sendRedirect(request.getContextPath() + "/app/awards");
                 } else {
                     request.setAttribute("error", "Failed to create award. Tender may already have an award.");
                     doGet(request, response);

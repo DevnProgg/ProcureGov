@@ -21,18 +21,4 @@ public class UserRepository extends BaseRepository{
         }
         return user;
     }
-
-    public User findById(int id) throws Exception {
-        String sql = "SELECT * FROM Users WHERE user_id = ?";
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return new User(rs.getInt("user_id"),
-                        rs.getInt("employee_id"), rs.getInt("supplier_id"));
-            }
-        }
-        return null;
-    }
 }

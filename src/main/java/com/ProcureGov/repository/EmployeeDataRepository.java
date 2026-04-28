@@ -1,29 +1,12 @@
 package com.ProcureGov.repository;
 
 import com.ProcureGov.model.EmployeeData;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class EmployeeDataRepository extends BaseRepository {
-    public List<EmployeeData> getAllEmployeeData() throws Exception {
-        List<EmployeeData> list = new ArrayList<>();
-        String sql = "SELECT * FROM view_employee_data";
-        try (Connection conn = getDataSource().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                list.add(new EmployeeData(
-                        rs.getInt("account_id"), rs.getInt("user_id"), rs.getInt("employee_id"),
-                        rs.getString("username"), rs.getString("role_name"), rs.getString("privilege_level"),
-                        rs.getString("full_names"), rs.getString("phone_number"), rs.getString("gender"),
-                        rs.getBoolean("active_status"), rs.getTimestamp("created_at")
-                ));
-            }
-        }
-        return list;
-    }
-
     public EmployeeData getEmployeeDataByID(int ID) throws Exception{
         String sql = "SELECT * FROM view_employee_data WHERE user_id = ?";
 
@@ -50,5 +33,4 @@ public class EmployeeDataRepository extends BaseRepository {
         }
         return null;
     }
-
 }

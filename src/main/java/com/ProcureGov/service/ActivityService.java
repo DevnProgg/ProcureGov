@@ -13,11 +13,7 @@ public class ActivityService {
         this.activityRepository = new ActivityRepository();
     }
 
-    public List<ActivityItem> getRecentActivity(int limit) {
+    public List<ActivityItem> getRecentActivity(int limit) throws   Exception {
         return activityRepository.findRecentActivity(limit);
     }
-
-//    public void logActivity(ActivityItem activity) {
-//        activityRepository.create(activity);
-//    }
 }

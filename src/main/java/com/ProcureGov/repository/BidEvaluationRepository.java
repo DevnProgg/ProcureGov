@@ -38,9 +38,38 @@ public class BidEvaluationRepository extends BaseRepository {
     }
 
     /**
+     * updates only specific fields
+     */
+    public boolean updateScores(int evaluationId, double priceScore,
+                                double technicalScore, double deliveryScore,
+                                double weightedTotal) throws Exception {
+        String sql = "UPDATE BidEvaluations SET " +
+                "price_score = ?, " +
+                "technical_score = ?, " +
+                "delivery_score = ?, " +
+                "weighted_total = ?, " +
+                "evaluated_at = CURRENT_TIMESTAMP " +
+                "WHERE evaluation_id = ?";
+
+        try (Connection conn = getDataSource().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDouble(1, priceScore);
+            stmt.setDouble(2, technicalScore);
+            stmt.setDouble(3, deliveryScore);
+            stmt.setDouble(4, weightedTotal);
+            stmt.setInt(5, evaluationId);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+
+        }
+    }
+
+    /**
      * Check if an evaluator has already evaluated a specific bid
      */
-    public boolean hasEvaluatorEvaluatedBid(int evaluatorId, int bidId) {
+    public boolean hasEvaluatorEvaluatedBid(int evaluatorId, int bidId) throws Exception{
         String sql = "SELECT COUNT(*) FROM BidEvaluations WHERE evaluator_id = ? AND bid_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -55,8 +84,6 @@ public class BidEvaluationRepository extends BaseRepository {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -64,7 +91,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Get evaluations for a specific bid (for current user)
      */
-    public BidEvaluation getEvaluationByBidAndEvaluator(int bidId, int evaluatorId) {
+    public BidEvaluation getEvaluationByBidAndEvaluator(int bidId, int evaluatorId) throws Exception {
         String sql = "SELECT * FROM BidEvaluations WHERE bid_id = ? AND evaluator_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -79,8 +106,6 @@ public class BidEvaluationRepository extends BaseRepository {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -88,7 +113,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Get all evaluations for a specific bid (for averaging)
      */
-    public List<BidEvaluation> getEvaluationsByBid(int bidId) {
+    public List<BidEvaluation> getEvaluationsByBid(int bidId) throws Exception{
         List<BidEvaluation> evaluations = new ArrayList<>();
         String sql = "SELECT be.*, e.full_names as evaluator_name " +
                 "FROM BidEvaluations be " +
@@ -107,9 +132,6 @@ public class BidEvaluationRepository extends BaseRepository {
                     evaluations.add(evaluation);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return evaluations;
     }
@@ -117,7 +139,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Get the lowest bid amount for a tender
      */
-    public double getLowestBidAmount(int tenderId) {
+    public double getLowestBidAmount(int tenderId) throws Exception {
         String sql = "SELECT MIN(price) FROM TenderBids WHERE tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -131,8 +153,6 @@ public class BidEvaluationRepository extends BaseRepository {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }
@@ -140,7 +160,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Get the shortest delivery timeline for a tender
      */
-    public int getShortestDeliveryDays(int tenderId) {
+    public int getShortestDeliveryDays(int tenderId) throws Exception{
         String sql = "SELECT MIN(delivery_days) FROM TenderBids WHERE tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -153,17 +173,14 @@ public class BidEvaluationRepository extends BaseRepository {
                     return rs.getInt(1);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }
 
     /**
-     * Get all evaluators for a tender (committee members + procurement officer)
+     * Get all evaluators for a tender
      */
-    public List<EvaluatorStatus> getEvaluatorsForTender(int tenderId) {
+    public List<EvaluatorStatus> getEvaluatorsForTender(int tenderId) throws Exception {
         List<EvaluatorStatus> evaluators = new ArrayList<>();
         String sql = "SELECT e.employee_id, e.full_names, " +
                 "CASE WHEN be.evaluation_id IS NOT NULL THEN TRUE ELSE FALSE END as has_evaluated " +
@@ -182,14 +199,11 @@ public class BidEvaluationRepository extends BaseRepository {
                 while (rs.next()) {
                     EvaluatorStatus evaluator = new EvaluatorStatus();
                     evaluator.setEvaluatorId(rs.getInt("employee_id"));
-                    evaluator.setName(rs.getString("full_name"));
+                    evaluator.setName(rs.getString("full_names"));
                     evaluator.setHasEvaluated(rs.getBoolean("has_evaluated"));
                     evaluators.add(evaluator);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return evaluators;
     }
@@ -197,7 +211,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Check if all evaluators have evaluated all bids for a tender
      */
-    public boolean haveAllEvaluatorsCompleted(int tenderId) {
+    public boolean haveAllEvaluatorsCompleted(int tenderId) throws  Exception{
         String sql = "SELECT COUNT(DISTINCT e.employee_id) as total_evaluators, " +
                 "COUNT(DISTINCT be.evaluator_id) as completed_evaluators " +
                 "FROM view_employee_data e " +
@@ -214,7 +228,6 @@ public class BidEvaluationRepository extends BaseRepository {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     int totalEvaluators = rs.getInt("total_evaluators");
-                    int completedEvaluators = rs.getInt("completed_evaluators");
 
                     // Check if each evaluator has evaluated ALL bids
                     String checkAllBidsSql = "SELECT be.evaluator_id " +
@@ -237,9 +250,6 @@ public class BidEvaluationRepository extends BaseRepository {
                     }
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -247,7 +257,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Get count of completed evaluations for a bid
      */
-    public int getCompletedEvaluationsCount(int bidId) {
+    public int getCompletedEvaluationsCount(int bidId) throws Exception {
         String sql = "SELECT COUNT(*) FROM BidEvaluations WHERE bid_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -260,9 +270,6 @@ public class BidEvaluationRepository extends BaseRepository {
                     return rs.getInt(1);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }
@@ -270,7 +277,7 @@ public class BidEvaluationRepository extends BaseRepository {
     /**
      * Get total number of evaluators for a tender
      */
-    public int getTotalEvaluatorsCount(int tenderId) {
+    public int getTotalEvaluatorsCount() throws Exception{
         String sql = "SELECT COUNT(*) FROM view_employee_data " +
                 "WHERE role_name IN ('PROCUREMENT_OFFICER', 'BOARD_MEMBER') " +
                 "AND active_status = TRUE";
@@ -282,17 +289,14 @@ public class BidEvaluationRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }
 
     /**
-     * Calculate final score (average of all evaluators' weighted totals) for a bid
+     * Calculate final score for a bid
      */
-    public double calculateFinalScore(int bidId) {
+    public double calculateFinalScore(int bidId) throws Exception {
         String sql = "SELECT AVG(weighted_total) FROM BidEvaluations WHERE bid_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -305,11 +309,25 @@ public class BidEvaluationRepository extends BaseRepository {
                     return rs.getDouble(1);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
+    }
+
+    public List<BidEvaluation> getBidEvaluationsForBid(int bidId) throws Exception {
+        List<BidEvaluation> bidEvaluations = new ArrayList<>();
+        String sql = "SELECT * FROM BidEvaluations WHERE bid_id = ?";
+
+        try(Connection conn = getDataSource().getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql);){
+            stmt.setInt(1, bidId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    bidEvaluations.add(mapResultSetToEvaluation(rs));
+                }
+            }
+        }
+        return bidEvaluations;
     }
 
     private BidEvaluation mapResultSetToEvaluation(ResultSet rs) throws SQLException {
@@ -318,15 +336,25 @@ public class BidEvaluationRepository extends BaseRepository {
         evaluation.setBidId(rs.getInt("bid_id"));
         evaluation.setTenderId(rs.getInt("tender_id"));
         evaluation.setEvaluatorId(rs.getInt("evaluator_id"));
-        evaluation.setPriceScore(rs.getDouble("price_score"));
-        evaluation.setTechnicalScore(rs.getDouble("technical_score"));
-        evaluation.setDeliveryScore(rs.getDouble("delivery_score"));
-        evaluation.setWeightedTotal(rs.getDouble("weighted_total"));
+
+        // Handle potential NULL values
+        double priceScore = rs.getDouble("price_score");
+        evaluation.setPriceScore(rs.wasNull() ? 0.0 : priceScore);
+
+        double technicalScore = rs.getDouble("technical_score");
+        evaluation.setTechnicalScore(rs.wasNull() ? 0.0 : technicalScore);
+
+        double deliveryScore = rs.getDouble("delivery_score");
+        evaluation.setDeliveryScore(rs.wasNull() ? 0.0 : deliveryScore);
+
+        double weightedTotal = rs.getDouble("weighted_total");
+        evaluation.setWeightedTotal(rs.wasNull() ? 0.0 : weightedTotal);
+
         evaluation.setEvaluatedAt(rs.getTimestamp("evaluated_at"));
         return evaluation;
     }
 
-    public int getCompletedEvaluationCount() {
+    public int getCompletedEvaluationCount() throws Exception{
         String sql = "SELECT COUNT(*) FROM TENDEROFFERS WHERE status = 'EVALUATED'";
 
         try (Connection conn = getDataSource().getConnection();
@@ -335,10 +363,6 @@ public class BidEvaluationRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }

@@ -45,25 +45,4 @@ public class AccountRepository extends BaseRepository {
         }
         return null;
     }
-
-    public Account findById(int id) throws Exception {
-        String sql = "SELECT * FROM Accounts WHERE account_id = ?";
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Account(
-                            rs.getInt("account_id"),
-                            rs.getInt("role_id"),
-                            rs.getInt("user_id"),
-                            rs.getString("username"),
-                            rs.getString("password_hash"),
-                            rs.getBoolean("active_status")
-                    );
-                }
-            }
-        }
-        return null;
-    }
 }

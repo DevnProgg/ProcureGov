@@ -3,9 +3,8 @@ package com.ProcureGov.service;
 
 import com.ProcureGov.model.*;
         import com.ProcureGov.repository.BidEvaluationRepository;
+import com.ProcureGov.repository.TenderBidRepository;
 import com.ProcureGov.repository.TenderOfferRepository;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class BidEvaluationService {
@@ -21,7 +20,7 @@ public class BidEvaluationService {
     /**
      * Get the current user's evaluation for a specific bid (convenience method)
      */
-    public BidEvaluation getMyEvaluation(int bidId, int evaluatorId) {
+    public BidEvaluation getMyEvaluation(int bidId, int evaluatorId) throws Exception {
         return evaluationRepository.getEvaluationByBidAndEvaluator(bidId, evaluatorId);
     }
 
@@ -48,7 +47,7 @@ public class BidEvaluationService {
     /**
      * Calculate weighted total: (Price × 0.40) + (Technical × 0.35) + (Delivery × 0.25)
      */
-    public double calculateWeightedTotal(double priceScore, double technicalScore, double deliveryScore) {
+    public double calculateWeightedTotal(double priceScore, double technicalScore, double deliveryScore) throws Exception {
         validateScore(priceScore, "Price score");
         validateScore(technicalScore, "Technical score");
         validateScore(deliveryScore, "Delivery score");
@@ -59,7 +58,7 @@ public class BidEvaluationService {
     /**
      * Calculate final score as average of all evaluators' weighted totals
      */
-    public double calculateFinalScore(int bidId) {
+    public double calculateFinalScore(int bidId) throws Exception {
         return evaluationRepository.calculateFinalScore(bidId);
     }
 
@@ -88,19 +87,29 @@ public class BidEvaluationService {
         // Calculate weighted total
         double weightedTotal = calculateWeightedTotal(priceScore, technicalScore, deliveryScore);
 
-        // Create evaluation
-        BidEvaluation evaluation = new BidEvaluation();
-        evaluation.setBidId(bidId);
-        evaluation.setTenderId(tenderId);
-        evaluation.setEvaluatorId(evaluatorId);
-        evaluation.setPriceScore(priceScore);
-        evaluation.setTechnicalScore(technicalScore);
-        evaluation.setDeliveryScore(deliveryScore);
-        evaluation.setWeightedTotal(weightedTotal);
+        //check is there is an evaluation already started in the database
+        List<BidEvaluation> bid = evaluationRepository.getEvaluationsByBid(bidId);
 
-        // Save to database
-        evaluationRepository.create(evaluation);
+        if (bid.isEmpty()) {
+            BidEvaluation evaluation = new BidEvaluation();
 
+            evaluation.setBidId(bidId);
+            evaluation.setTenderId(tenderId);
+            evaluation.setEvaluatorId(evaluatorId);
+            evaluation.setPriceScore(priceScore);
+            evaluation.setTechnicalScore(technicalScore);
+            evaluation.setDeliveryScore(deliveryScore);
+            evaluation.setWeightedTotal(weightedTotal);
+
+            // Save to database
+            evaluationRepository.create(evaluation);
+        } else {
+           BidEvaluation evaluation =  bid.getFirst();
+            //update record
+            if (!evaluationRepository.updateScores(evaluation.getEvaluationId(), priceScore,technicalScore, deliveryScore,  weightedTotal)){
+                throw new IllegalStateException("Something went wrong in updating the score");
+            }
+        }
         // Check if all evaluators have completed
         checkAndUpdateTenderStatus(tenderId);
     }
@@ -117,7 +126,7 @@ public class BidEvaluationService {
     /**
      * Get evaluation context for a bid
      */
-    public BidScoreSummary getBidScoreSummary(int bidId, int tenderId, int evaluatorId) {
+    public BidScoreSummary getBidScoreSummary(int bidId, int tenderId, int evaluatorId) throws Exception {
         BidScoreSummary summary = new BidScoreSummary();
         summary.setBidId(bidId);
 
@@ -127,17 +136,17 @@ public class BidEvaluationService {
 
         // Set auto-calculated scores
         // You'll need to get bid details from BidRepository
-        TenderOfferRepository tenderRepo = new TenderOfferRepository();
-        // Assuming you have a way to get bid details
-        // summary.setBidAmount(bid.getBidAmount());
-        // summary.setDeliveryDays(bid.getDeliveryDays());
+        TenderBidRepository tenderBid = new TenderBidRepository();
+        TenderBid bid = tenderBid.findById(bidId);
+        summary.setBidAmount(bid.getPrice());
+        summary.setDeliveryDays(bid.getDelivery_days());
 
         summary.setLowestBidAmount(lowestBidAmount);
         summary.setShortestDeliveryDays(shortestDeliveryDays);
 
         // Calculate auto scores based on actual bid values
-        // summary.setPriceScore(calculatePriceScore(bid.getBidAmount(), lowestBidAmount));
-        // summary.setDeliveryScore(calculateDeliveryScore(bid.getDeliveryDays(), shortestDeliveryDays));
+        summary.setPriceScore(calculatePriceScore(bid.getPrice(), lowestBidAmount));
+        summary.setDeliveryScore(calculateDeliveryScore(bid.getDelivery_days(), shortestDeliveryDays));
 
         // Check if current user already evaluated
         boolean hasEvaluated = evaluationRepository.hasEvaluatorEvaluatedBid(evaluatorId, bidId);
@@ -153,7 +162,7 @@ public class BidEvaluationService {
 
         // Get evaluation progress
         summary.setEvaluationsCompleted(evaluationRepository.getCompletedEvaluationsCount(bidId));
-        summary.setTotalEvaluators(evaluationRepository.getTotalEvaluatorsCount(tenderId));
+        summary.setTotalEvaluators(evaluationRepository.getTotalEvaluatorsCount());
 
         // Calculate final score if all evaluators completed
         if (summary.getEvaluationsCompleted() == summary.getTotalEvaluators()) {
@@ -166,55 +175,20 @@ public class BidEvaluationService {
     /**
      * Get all evaluators' status for a tender
      */
-    public List<EvaluatorStatus> getEvaluatorsStatus(int tenderId) {
+    public List<EvaluatorStatus> getEvaluatorsStatus(int tenderId) throws Exception {
         return evaluationRepository.getEvaluatorsForTender(tenderId);
     }
 
-
-    /**
-     * Check if all evaluations are complete
-     */
-    public boolean areAllEvaluationsComplete(int tenderId) {
-        return evaluationRepository.haveAllEvaluatorsCompleted(tenderId);
-    }
-
-    /**
-     * Get the ranked list of bids for a tender
-     */
-    public List<BidScoreSummary> getRankedBids(int tenderId) {
-        List<BidScoreSummary> rankedBids = new ArrayList<>();
-        // Implementation to get all bids ranked by final score
-        // This would join TenderBids with BidEvaluations and calculate averages
-        return rankedBids;
-    }
-
-    private void validateScore(double score, String scoreName) {
+    private void validateScore(double score, String scoreName) throws Exception {
         if (score < 0 || score > 100) {
             throw new IllegalArgumentException(scoreName + " must be between 0 and 100");
         }
     }
 
-    public int getActiveEvaluationCount() {
-        // Implementation
-        return 0;
-    }
-
-    public double getAverageEvaluationScore() {
-        // Implementation
-        return 0.0;
-    }
-
-    /**
-     * Create a new evaluation
-     */
-    public void createEvaluation(BidEvaluation evaluation) throws Exception {
-        evaluationRepository.create(evaluation);
-    }
-
     /**
      * Check if user has already evaluated a bid
      */
-    public boolean hasUserEvaluatedBid(int evaluatorId, int bidId) {
+    public boolean hasUserEvaluatedBid(int evaluatorId, int bidId) throws Exception {
         return evaluationRepository.hasEvaluatorEvaluatedBid(evaluatorId, bidId);
     }
 
@@ -222,28 +196,28 @@ public class BidEvaluationService {
     /**
      * Get completed evaluation count
      */
-    public int getCompletedEvaluationCount() {
+    public int getCompletedEvaluationCount() throws Exception {
         return evaluationRepository.getCompletedEvaluationCount();
     }
 
     /**
      * Get completed evaluation count for a specific bid
      */
-    public int getCompletedEvaluationCount(int bidId) {
+    public int getCompletedEvaluationCount(int bidId) throws Exception {
         return evaluationRepository.getCompletedEvaluationsCount(bidId);
     }
 
     /**
      * Get total evaluators count
      */
-    public int getTotalEvaluatorsCount(int tenderId) {
-        return evaluationRepository.getTotalEvaluatorsCount(tenderId);
+    public int getTotalEvaluatorsCount() throws Exception {
+        return evaluationRepository.getTotalEvaluatorsCount();
     }
 
     /**
      * Get average technical score for a bid
      */
-    public double getAverageTechnicalScore(int bidId) {
+    public double getAverageTechnicalScore(int bidId) throws Exception {
         List<BidEvaluation> evaluations = evaluationRepository.getEvaluationsByBid(bidId);
         if (evaluations.isEmpty()) return 0;
 
@@ -252,13 +226,5 @@ public class BidEvaluationService {
                 .sum();
         return sum / evaluations.size();
     }
-
-    /**
-     * Check if all evaluators have completed for a tender
-     */
-    public boolean haveAllEvaluatorsCompletedForTender(int tenderId) {
-        return evaluationRepository.haveAllEvaluatorsCompleted(tenderId);
-    }
-
 
 }

@@ -12,12 +12,10 @@ import java.io.IOException;
 public class BidReplacementServlet extends HttpServlet {
 
     private BidService bidService;
-    private TenderService tenderService;
 
     @Override
     public void init() throws ServletException {
         bidService = new BidService();
-        tenderService = new TenderService();
     }
 
     @Override

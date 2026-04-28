@@ -41,7 +41,6 @@ public class KeepExistingBidServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid tender ID");
         } catch (Exception e) {
-            e.printStackTrace();
             session.setAttribute("errorMessage", "An error occurred: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/app/supplier/dashboard");
         }

@@ -8,10 +8,10 @@ import java.util.List;
 
 public class ActivityRepository extends BaseRepository {
 
-    public List<ActivityItem> findRecentActivity(int limit) {
+    public List<ActivityItem> findRecentActivity(int limit) throws  Exception {
         List<ActivityItem> activities = new ArrayList<>();
 
-        String sql = "SELECT * FROM evaluatorbidlogs ORDER BY evaluated_at DESC LIMIT ?";
+        String sql = "SELECT * FROM bidevaluations ORDER BY evaluated_at DESC LIMIT ?";
 
         try (Connection conn = getDataSource().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -23,9 +23,6 @@ public class ActivityRepository extends BaseRepository {
                     activities.add(mapResultSetToActivity(rs));
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return activities;

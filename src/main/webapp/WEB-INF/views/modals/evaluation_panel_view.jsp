@@ -598,6 +598,7 @@
                   <div class="bid-list-card">
                     <div class="bid-list-header">
                       <div>
+
                         <span class="text-title">${bid.supplierName}</span>
                         <span class="status-badge status-closed" style="margin-left: 0.75rem;">
                                                     <span class="material-symbols-outlined" style="font-size: 0.875rem;">schedule</span>
@@ -743,7 +744,7 @@
                               </a>
                             </c:when>
                             <c:when test="${userRole eq 'PROCUREMENT_OFFICER' && (tender.status eq 'EVALUATED' || tender.status eq 'AWARDED')}">
-                              <a href="${pageContext.request.contextPath}/app/awards/create?tenderId=${tender.tender_id}&bidId=${entry.bidId}"
+                              <a href="${pageContext.request.contextPath}/app/officer/award?tenderId=${tender.tender_id}"
                                  class="award-btn">
                                 <span class="material-symbols-outlined">verified</span>
                                 Award Contract

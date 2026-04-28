@@ -143,7 +143,7 @@
                                 <span class="material-symbols-outlined">fact_check</span>
                                 Evaluation Panel
                             </a>
-                            <a href="${pageContext.request.contextPath}/app/notices"
+                            <a href="${pageContext.request.contextPath}/app/awards"
                                class="btn btn-ghost btn-full" style="justify-content:flex-start;">
                                 <span class="material-symbols-outlined">description</span>
                                 Award Notices

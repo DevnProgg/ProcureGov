@@ -13,34 +13,9 @@ import java.util.List;
 public class TenderBidRepository extends BaseRepository {
 
     /**
-     * Count total bids for a specific tender
-     */
-    public int countBidsByTenderId(int tenderId) {
-        String sql = "SELECT COUNT(*) FROM TenderBids WHERE tender_id = ?";
-
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, tenderId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error counting bids for tender ID " + tenderId + ": " + e.getMessage());
-        }
-
-        return 0;
-    }
-
-    /**
      * Get total count of all bids
      */
-    public int getTotalBidCount() {
+    public int getTotalBidCount() throws Exception {
         String sql = "SELECT COUNT(*) FROM TenderBids";
 
         try (Connection conn = getDataSource().getConnection();
@@ -50,10 +25,6 @@ public class TenderBidRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error getting total bid count: " + e.getMessage());
         }
         return 0;
     }
@@ -61,7 +32,7 @@ public class TenderBidRepository extends BaseRepository {
     /**
      * Get bid count for current month
      */
-    public int getBidCountForCurrentMonth() {
+    public int getBidCountForCurrentMonth() throws Exception {
         String sql = "SELECT COUNT(*) FROM TenderBids " +
                 "WHERE MONTH(submitted_at) = MONTH(CURRENT_DATE()) " +
                 "AND YEAR(submitted_at) = YEAR(CURRENT_DATE())";
@@ -73,10 +44,6 @@ public class TenderBidRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error getting current month bid count: " + e.getMessage());
         }
         return 0;
     }
@@ -84,7 +51,7 @@ public class TenderBidRepository extends BaseRepository {
     /**
      * Get bid count for last month
      */
-    public int getBidCountForLastMonth() {
+    public int getBidCountForLastMonth() throws Exception {
         String sql = "SELECT COUNT(*) FROM TenderBids " +
                 "WHERE MONTH(submitted_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)) " +
                 "AND YEAR(submitted_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))";
@@ -96,10 +63,6 @@ public class TenderBidRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error getting last month bid count: " + e.getMessage());
         }
         return 0;
     }
@@ -107,7 +70,7 @@ public class TenderBidRepository extends BaseRepository {
     /**
      * Get bid count for a specific tender
      */
-    public int getBidCountForTender(int tenderId) {
+    public int getBidCountForTender(int tenderId) throws Exception {
         String sql = "SELECT COUNT(*) FROM TenderBids WHERE tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -120,10 +83,6 @@ public class TenderBidRepository extends BaseRepository {
                     return rs.getInt(1);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error getting bid count for tender " + tenderId + ": " + e.getMessage());
         }
         return 0;
     }
@@ -131,7 +90,7 @@ public class TenderBidRepository extends BaseRepository {
     /**
      * Check if a supplier has already bid on a specific tender
      */
-    public boolean hasSupplierBidOnTender(int supplierId, int tenderId) {
+    public boolean hasSupplierBidOnTender(int supplierId, int tenderId) throws Exception {
         String sql = "SELECT COUNT(*) FROM TenderBids WHERE supplier_id = ? AND tender_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -145,47 +104,14 @@ public class TenderBidRepository extends BaseRepository {
                     return rs.getInt(1) > 0;
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error checking if supplier " + supplierId + " bid on tender " + tenderId + ": " + e.getMessage());
         }
-        return false;
-    }
-
-    /**
-     * Check if a supplier has already bid on a specific tender
-     */
-    public boolean existsBySupplierAndTender(int supplierId, int tenderId) {
-        String sql = "SELECT COUNT(*) FROM TenderBids WHERE supplier_id = ? AND tender_id = ?";
-
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, supplierId);
-            stmt.setInt(2, tenderId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Error checking existing bid for supplier " + supplierId +
-                    " on tender " + tenderId + ": " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         return false;
     }
 
     /**
      * Find all bids for a specific tender
      */
-    public List<TenderBid> findByTenderId(int tenderId) {
+    public List<TenderBid> findByTenderId(int tenderId) throws Exception{
         List<TenderBid> bids = new ArrayList<>();
 
         String sql = "SELECT * FROM TenderBids WHERE tender_id = ? ORDER BY submitted_at DESC";
@@ -201,11 +127,6 @@ public class TenderBidRepository extends BaseRepository {
                 }
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Error finding bids for tender ID " + tenderId + ": " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
 
         return bids;
@@ -214,7 +135,7 @@ public class TenderBidRepository extends BaseRepository {
     /**
      * Find detailed bids for a tender including supplier information
      */
-    public List<BidDetailDTO> findDetailedBidsByTenderId(int tenderId) {
+    public List<BidDetailDTO> findDetailedBidsByTenderId(int tenderId) throws Exception{
         List<BidDetailDTO> bids = new ArrayList<>();
 
         String sql = "SELECT " +
@@ -230,13 +151,14 @@ public class TenderBidRepository extends BaseRepository {
                 "    s.email, " +
                 "    s.phone_number, " +
                 "    e.weighted_total AS evaluation_score, " +
-                "    CASE " +
-                "        WHEN a.award_id IS NOT NULL THEN true " +
-                "        ELSE false " +
-                "    END AS is_awarded " +
+                "    e.price_score," +
+                "    e.delivery_score," +
+                "    e.technical_score," +
+                "    b.price," +
+                "IF(a.award_id IS NOT NULL, true, false) AS is_awarded " +
                 "FROM TenderBids b " +
                 "INNER JOIN Suppliers s ON b.supplier_id = s.supplier_id " +
-                "LEFT JOIN EvaluatorBidLogs e ON b.bid_id = e.bid_id " +
+                "LEFT JOIN bidevaluations e ON b.bid_id = e.bid_id " +
                 "LEFT JOIN Awards a ON b.bid_id = a.bid_id " +
                 "WHERE b.tender_id = ? " +
                 "ORDER BY b.submitted_at DESC";
@@ -261,6 +183,10 @@ public class TenderBidRepository extends BaseRepository {
                     bid.setEmail(rs.getString("email"));
                     bid.setPhoneNumber(rs.getString("phone_number"));
                     bid.setAwarded(rs.getBoolean("is_awarded"));
+                    bid.setPrice(rs.getDouble("price"));
+                    bid.setDeliveryScore(rs.getDouble("delivery_score"));
+                    bid.setTechnicalScore(rs.getDouble("technical_score"));
+                    bid.setPriceScore(rs.getDouble("price_score"));
 
                     double score = rs.getDouble("evaluation_score");
                     if (!rs.wasNull()) {
@@ -270,12 +196,6 @@ public class TenderBidRepository extends BaseRepository {
                     bids.add(bid);
                 }
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Error finding detailed bids for tender ID " + tenderId + ": " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
 
         return bids;
@@ -284,7 +204,7 @@ public class TenderBidRepository extends BaseRepository {
     /**
      * Find bids by supplier ID with full details
      */
-    public List<BidSummaryDTO> findBidsBySupplierId(int supplierId) {
+    public List<BidSummaryDTO> findBidsBySupplierId(int supplierId) throws Exception{
         List<BidSummaryDTO> bids = new ArrayList<>();
 
         String sql = "SELECT " +
@@ -331,23 +251,16 @@ public class TenderBidRepository extends BaseRepository {
                     bids.add(bid);
                 }
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Error fetching bids for supplier ID: " + supplierId + " - " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
-
         return bids;
     }
 
     /**
      * Save a new bid
      */
-    public boolean save(TenderBid bid) {
-        String sql = "INSERT INTO TenderBids (tender_id, supplier_id, delivery_days, compliance_statement, document_file_path, submitted_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+    public boolean save(TenderBid bid) throws Exception{
+        String sql = "INSERT INTO TenderBids (tender_id, supplier_id, delivery_days, compliance_statement, document_file_path, submitted_at, price) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getDataSource().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -358,6 +271,7 @@ public class TenderBidRepository extends BaseRepository {
             stmt.setString(4, bid.getCompliance_statement());
             stmt.setString(5, bid.getDocument_file_path());
             stmt.setTimestamp(6, bid.getSubmitted_at() != null ? bid.getSubmitted_at() : new Timestamp(System.currentTimeMillis()));
+            stmt.setDouble(7, bid.getPrice());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -369,19 +283,14 @@ public class TenderBidRepository extends BaseRepository {
                     }
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error saving bid: " + e.getMessage());
         }
-
         return false;
     }
 
     /**
      * Find bid by ID
      */
-    public TenderBid findById(int bidId) {
+    public TenderBid findById(int bidId) throws Exception{
         String sql = "SELECT * FROM TenderBids WHERE bid_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -394,19 +303,14 @@ public class TenderBidRepository extends BaseRepository {
                     return mapResultSetToTenderBid(rs);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error finding bid by ID " + bidId + ": " + e.getMessage());
         }
-
         return null;
     }
 
     /**
      * Update bid information
      */
-    public boolean update(TenderBid bid) {
+    public boolean update(TenderBid bid) throws Exception{
         String sql = "UPDATE TenderBids SET delivery_days = ?, compliance_statement = ?, document_file_path = ? WHERE bid_id = ?";
 
         try (Connection conn = getDataSource().getConnection();
@@ -419,50 +323,22 @@ public class TenderBidRepository extends BaseRepository {
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error updating bid: " + e.getMessage());
         }
-
-        return false;
     }
 
-    /**
-     * Delete/withdraw a bid
-     */
-    public boolean delete(int bidId, int supplierId) {
-        String sql = "DELETE FROM TenderBids WHERE bid_id = ? AND supplier_id = ?";
-
-        try (Connection conn = getDataSource().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, bidId);
-            stmt.setInt(2, supplierId);
-
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error deleting bid: " + e.getMessage());
-        }
-
-        return false;
-    }
 
     /**
      * Get bid statistics for a supplier
      */
-    public BidStatsDTO getBidStatsBySupplier(int supplierId) {
+    public BidStatsDTO getBidStatsBySupplier(int supplierId) throws Exception {
         BidStatsDTO stats = new BidStatsDTO();
 
         String sql = "SELECT " +
                 "    COUNT(*) AS total_bids, " +
                 "    COUNT(DISTINCT b.tender_id) AS unique_tenders, " +
-                "    SUM(CASE WHEN a.award_id IS NOT NULL THEN 1 ELSE 0 END) AS won_bids, " +
-                "    SUM(CASE WHEN e.log_id IS NOT NULL AND a.award_id IS NULL THEN 1 ELSE 0 END) AS evaluated_bids, " +
-                "    SUM(CASE WHEN e.log_id IS NULL AND a.award_id IS NULL THEN 1 ELSE 0 END) AS pending_bids, " +
+                "    SUM(IF(a.award_id IS NOT NULL, 1, 0)) AS won_bids, " +
+                "    SUM(IF(e.log_id IS NOT NULL AND a.award_id IS NULL, 1, 0)) AS evaluated_bids, " +
+                "    SUM(IF(e.log_id IS NULL AND a.award_id IS NULL, 1, 0)) AS pending_bids, " +
                 "    AVG(e.weighted_total) AS avg_score " +
                 "FROM TenderBids b " +
                 "LEFT JOIN EvaluatorBidLogs e ON b.bid_id = e.bid_id " +
@@ -488,14 +364,7 @@ public class TenderBidRepository extends BaseRepository {
                     }
                 }
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Error getting bid stats for supplier " + supplierId + ": " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
-
         return stats;
     }
 
@@ -512,5 +381,9 @@ public class TenderBidRepository extends BaseRepository {
         bid.setDocument_file_path(rs.getString("document_file_path"));
         bid.setSubmitted_at(rs.getTimestamp("submitted_at"));
         return bid;
+    }
+
+    public boolean delete(int bidId, int supplierId) {
+        return false;
     }
 }

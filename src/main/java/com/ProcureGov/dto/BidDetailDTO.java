@@ -23,5 +23,9 @@ public class BidDetailDTO {
     private String email;
     private String phoneNumber;
     private Double evaluationScore;
+    private Double priceScore;
+    private Double technicalScore;
+    private Double deliveryScore;
+    private Double price;
     private boolean isAwarded;
 }

@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 
 public class EvaluationRepository extends BaseRepository {
 
-    public int getActiveEvaluationCount() {
+    public int getActiveEvaluationCount() throws Exception{
         String sql = "SELECT COUNT(DISTINCT tender_id) FROM tenderoffers WHERE status = 'UNDER_EVALUATION'";
 
         try (Connection conn = getDataSource().getConnection();
@@ -18,13 +18,11 @@ public class EvaluationRepository extends BaseRepository {
                 return rs.getInt(1);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }
 
-    public int getCompletedEvaluationCount() {
+    public int getCompletedEvaluationCount() throws  Exception {
         String sql = "SELECT COUNT(DISTINCT tender_id) FROM procure_gov.tenderoffers WHERE status = 'EVALUATED'";
 
         try (Connection conn = getDataSource().getConnection();
@@ -34,14 +32,11 @@ public class EvaluationRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }
 
-    public double getAverageEvaluationScore() {
+    public double getAverageEvaluationScore() throws Exception {
         String sql = "SELECT AVG(weighted_total) FROM evaluatorbidlogs";
 
         try (Connection conn = getDataSource().getConnection();
@@ -51,9 +46,6 @@ public class EvaluationRepository extends BaseRepository {
             if (rs.next()) {
                 return rs.getDouble(1);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0.0;
     }

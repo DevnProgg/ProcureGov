@@ -81,8 +81,8 @@ public class CreateTenderServlet extends HttpServlet {
 
             // Handle file upload with PDF validation
             Part filePart = req.getPart("noticeFile");
-            String fileName = null;
-            String filePath = null;
+            String fileName;
+            String filePath = "";
 
             if (filePart != null && filePart.getSize() > 0) {
                 // Validate file size (5 MB max)
@@ -93,19 +93,24 @@ public class CreateTenderServlet extends HttpServlet {
                 // Validate file type (PDF only)
                 String contentType = filePart.getContentType();
                 fileName = extractFileName(filePart);
-                if (!contentType.equals("application/pdf") && !fileName.toLowerCase().endsWith(".pdf")) {
-                    throw new IllegalArgumentException("Only PDF files are allowed");
+                if (!contentType.equals("application/pdf")) {
+                    assert fileName != null;
+                    if (!fileName.toLowerCase().endsWith(".pdf")) {
+                        throw new IllegalArgumentException("Only PDF files are allowed");
+                    }
                 }
 
                 // Create upload directory if it doesn't exist
                 String uploadDir = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
                 File uploadDirFile = new File(uploadDir);
                 if (!uploadDirFile.exists()) {
-                    uploadDirFile.mkdirs();
+                    if (!uploadDirFile.mkdirs()){
+                        throw new IOException("Unable to create directory");
+                    }
                 }
 
                 // Generate unique filename
-                String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
+                String uniqueFileName = UUID.randomUUID() + "_" + fileName;
                 filePath = UPLOAD_DIR + File.separator + uniqueFileName;
 
                 // Save file
@@ -142,8 +147,8 @@ public class CreateTenderServlet extends HttpServlet {
 
             // Set created_by from session
             EmployeeData employeeData = (EmployeeData) session.getAttribute("user");
-            Integer userId = employeeData.getEmployee_id();
-            tender.setCreated_by(userId != null ? userId : 1);
+            int userId = employeeData.getEmployee_id();
+            tender.setCreated_by(userId);
 
             // Generate reference number (MPW-YYYY-NNNN)
             String referenceNumber = generateReferenceNumber();
@@ -158,14 +163,7 @@ public class CreateTenderServlet extends HttpServlet {
             tenderService.createTender(tender);
 
             // Send response based on action type
-            if (isAutoSave) {
-                //session.setAttribute("successMessage", "Tender " + referenceNumber + " draft saved successfully");
-                resp.sendRedirect(req.getContextPath() + "/app/tenders");
-            } else {
-                // For published tenders, redirect with success message
-                //session.setAttribute("successMessage", "Tender " + referenceNumber + " published successfully");
-                resp.sendRedirect(req.getContextPath() + "/app/tenders");
-            }
+            resp.sendRedirect(req.getContextPath() + "/app/tenders");
 
         } catch (Exception e) {
             if (isAutoSave) {

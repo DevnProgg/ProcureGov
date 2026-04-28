@@ -96,13 +96,12 @@ public class SubmitBidServlet extends HttpServlet {
             request.setAttribute("activePage", "tenders");
             request.setAttribute("pageSection", "Tenders");
 
-            request.getRequestDispatcher("/WEB-INF/views/pages/bid_submission_form.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/modals/bid_submission_form.jsp")
                     .forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid tender ID");
         } catch (Exception e) {
-            e.printStackTrace();
             request.setAttribute("formError", "An error occurred while loading the bid form.");
             request.getRequestDispatcher("/WEB-INF/views/pages/error.jsp").forward(request, response);
         }
@@ -159,11 +158,12 @@ public class SubmitBidServlet extends HttpServlet {
             // Validate required fields
             StringBuilder validationErrors = new StringBuilder();
 
+            double bidAmount = 0;
             if (bidAmountParam == null || bidAmountParam.trim().isEmpty()) {
                 validationErrors.append("Bid amount is required. ");
             } else {
                 try {
-                    double bidAmount = Double.parseDouble(bidAmountParam);
+                    bidAmount = Double.parseDouble(bidAmountParam);
                     if (bidAmount <= 0) {
                         validationErrors.append("Bid amount must be greater than zero. ");
                     }
@@ -220,7 +220,9 @@ public class SubmitBidServlet extends HttpServlet {
             String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+                if(!uploadDir.mkdirs()){
+                    throw new RuntimeException("Unable to create upload directory.");
+                }
             }
 
             String uniqueFileName = System.currentTimeMillis() + "_" + supplier.getSupplier_id() + "_" + fileName;
@@ -237,6 +239,7 @@ public class SubmitBidServlet extends HttpServlet {
             bid.setCompliance_statement(complianceStatement.trim());
             bid.setDocument_file_path(UPLOAD_DIR + "/" + uniqueFileName);
             bid.setSubmitted_at(new Timestamp(System.currentTimeMillis()));
+            bid.setPrice(bidAmount);
 
             boolean success = bidService.submitBid(bid);
 
@@ -252,7 +255,6 @@ public class SubmitBidServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             request.setAttribute("formError", "An error occurred while processing your bid: " + e.getMessage());
             request.setAttribute("tender", tender);
             forwardWithPreviousInput(request, response, tenderIdParam, bidAmountParam,
@@ -276,6 +278,6 @@ public class SubmitBidServlet extends HttpServlet {
         request.setAttribute("pageSection", "Tenders");
         request.setAttribute("tenderId", tenderId);
 
-        request.getRequestDispatcher("/WEB-INF/views/pages/bid_submission_form.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/modals/bid_submission_form.jsp").forward(request, response);
     }
 }

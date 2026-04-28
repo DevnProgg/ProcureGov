@@ -10,12 +10,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @WebServlet("/app/officer/dashboard")
 public class OfficerDashboardController extends HttpServlet {
@@ -43,8 +41,7 @@ public class OfficerDashboardController extends HttpServlet {
             // Get user information
             if (session != null && session.getAttribute("user") != null) {
                 Object user = session.getAttribute("user");
-                if (user instanceof EmployeeData) {
-                    EmployeeData employee = (EmployeeData) user;
+                if (user instanceof EmployeeData employee) {
                     req.setAttribute("userRole", employee.getPrivilege_level());
                     req.setAttribute("userName", employee.getFull_names());
                 }
@@ -82,7 +79,6 @@ public class OfficerDashboardController extends HttpServlet {
                     .forward(req, resp);
 
         } catch (Exception e) {
-            e.printStackTrace();
             req.setAttribute("error", "Unable to load dashboard data: " + e.getMessage());
             req.getRequestDispatcher("/WEB-INF/views/pages/officerDashboard.jsp")
                     .forward(req, resp);
@@ -126,7 +122,6 @@ public class OfficerDashboardController extends HttpServlet {
             req.setAttribute("totalValue", stats.getTotalEstimatedValue());
 
         } catch (Exception e) {
-            e.printStackTrace();
             setDefaultStats(req);
         }
     }
@@ -173,7 +168,6 @@ public class OfficerDashboardController extends HttpServlet {
                 req.setAttribute("recentActivity", activityList);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             // Generate sample activity if service fails
             setSampleActivity(req);
         }
@@ -220,8 +214,7 @@ public class OfficerDashboardController extends HttpServlet {
         activities.add(item);
     }
 
-    private void setCategoryDistribution(HttpServletRequest req) {
-        try {
+    private void setCategoryDistribution(HttpServletRequest req) throws Exception{
             List<CategoryStatsDTO> categoryStats = tenderService.getCategoryStats();
 
             if (categoryStats != null && !categoryStats.isEmpty()) {
@@ -232,31 +225,33 @@ public class OfficerDashboardController extends HttpServlet {
                 List<Map<String, Object>> categories = new ArrayList<>();
 
                 for (CategoryStatsDTO stat : categoryStats) {
-                    Map<String, Object> category = new HashMap<>();
-                    category.put("name", stat.getCategory());
-                    category.put("count", stat.getTenderCount());
-                    category.put("openCount", stat.getOpenCount());
-                    category.put("totalValue", stat.getTotalValue());
-                    category.put("avgValue", stat.getAvgValue());
-                    category.put("type", getCategoryType(stat.getCategory()));
-
-                    // Calculate percentage
-                    double percentage = totalCount > 0 ?
-                            (stat.getTenderCount() * 100.0 / totalCount) : 0;
-                    category.put("percentage", Math.round(percentage));
+                    Map<String, Object> category = getStringObjectMap(stat, totalCount);
 
                     categories.add(category);
                 }
 
                 req.setAttribute("categoryStats", categories);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
-    private void setRecentTenders(HttpServletRequest req) {
-        try {
+    @Nonnull
+    private Map<String, Object> getStringObjectMap(CategoryStatsDTO stat, int totalCount) {
+        Map<String, Object> category = new HashMap<>();
+        category.put("name", stat.getCategory());
+        category.put("count", stat.getTenderCount());
+        category.put("openCount", stat.getOpenCount());
+        category.put("totalValue", stat.getTotalValue());
+        category.put("avgValue", stat.getAvgValue());
+        category.put("type", getCategoryType(stat.getCategory()));
+
+        // Calculate percentage
+        double percentage = totalCount > 0 ?
+                (stat.getTenderCount() * 100.0 / totalCount) : 0;
+        category.put("percentage", Math.round(percentage));
+        return category;
+    }
+
+    private void setRecentTenders(HttpServletRequest req) throws Exception {
             List<TenderOffer> recentTenders = tenderService.getOpenTendersExcludingDrafts(5);
 
             if (recentTenders != null && !recentTenders.isEmpty()) {
@@ -281,9 +276,6 @@ public class OfficerDashboardController extends HttpServlet {
 
                 req.setAttribute("recentTenders", tenderList);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void setBidStatistics(HttpServletRequest req) {
@@ -305,14 +297,12 @@ public class OfficerDashboardController extends HttpServlet {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             req.setAttribute("bidCount", 0);
             req.setAttribute("bidTrend", 0);
         }
     }
 
-    private void setComplianceAlerts(HttpServletRequest req) {
-        try {
+    private void setComplianceAlerts(HttpServletRequest req) throws  Exception {
             List<String> alerts = new ArrayList<>();
 
             // Check for tenders closing soon (within 48 hours)
@@ -342,12 +332,8 @@ public class OfficerDashboardController extends HttpServlet {
 
             if (!alerts.isEmpty()) {
                 req.setAttribute("complianceAlerts", alerts);
-                req.setAttribute("complianceAlert", alerts.get(0)); // Primary alert
+                req.setAttribute("complianceAlert", alerts.getFirst()); // Primary alert
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void setEvaluationStats(HttpServletRequest req) {
@@ -359,10 +345,9 @@ public class OfficerDashboardController extends HttpServlet {
             req.setAttribute("activeEvaluations", activeEvaluations);
             req.setAttribute("completedEvaluations", completedEvaluations);
             req.setAttribute("averageScore", averageScore);
-            req.setAttribute("evalCount", activeEvaluations); // Alias for dashboard
+            req.setAttribute("evalCount", activeEvaluations);
 
         } catch (Exception e) {
-            e.printStackTrace();
             req.setAttribute("activeEvaluations", 0);
             req.setAttribute("completedEvaluations", 0);
             req.setAttribute("averageScore", 0.0);
@@ -373,55 +358,30 @@ public class OfficerDashboardController extends HttpServlet {
     private String getActivityIcon(String type) {
         if (type == null) return "circle";
 
-        switch (type.toLowerCase()) {
-            case "creation":
-            case "create":
-                return "add_circle";
-            case "bid":
-            case "submission":
-                return "send";
-            case "evaluation":
-            case "evaluate":
-                return "rate_review";
-            case "award":
-            case "awarded":
-                return "verified";
-            case "close":
-            case "closed":
-                return "lock";
-            case "draft":
-                return "edit_note";
-            case "update":
-            case "edit":
-                return "edit";
-            case "delete":
-            case "cancel":
-                return "cancel";
-            case "warning":
-            case "alert":
-                return "warning";
-            default:
-                return "circle";
-        }
+        return switch (type.toLowerCase()) {
+            case "creation", "create" -> "add_circle";
+            case "bid", "submission" -> "send";
+            case "evaluation", "evaluate" -> "rate_review";
+            case "award", "awarded" -> "verified";
+            case "close", "closed" -> "lock";
+            case "draft" -> "edit_note";
+            case "update", "edit" -> "edit";
+            case "delete", "cancel" -> "cancel";
+            case "warning", "alert" -> "warning";
+            default -> "circle";
+        };
     }
 
     private String getCategoryType(String category) {
         if (category == null) return "general";
 
-        switch (category.toLowerCase()) {
-            case "construction":
-                return "construction";
-            case "roads":
-                return "roads";
-            case "electrical":
-                return "electrical";
-            case "plumbing":
-                return "plumbing";
-            case "general services":
-                return "general";
-            default:
-                return "general";
-        }
+        return switch (category.toLowerCase()) {
+            case "construction" -> "construction";
+            case "roads" -> "roads";
+            case "electrical" -> "electrical";
+            case "plumbing" -> "plumbing";
+            default -> "general";
+        };
     }
 
     private String getRelativeTime(Date date) {
