@@ -53,8 +53,7 @@ public class SupplierDashboardServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/pages/supplierDashboard.jsp").forward(request, response);
 
         } catch (Exception e) {
-            request.setAttribute("error", "Unable to load dashboard data");
-            request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error loading dashboard data");
         }
     }
 }

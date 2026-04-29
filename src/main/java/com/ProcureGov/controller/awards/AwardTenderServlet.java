@@ -8,7 +8,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,8 +31,6 @@ public class AwardTenderServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        HttpSession session = request.getSession(false);
 
         try {
             // Get all evaluated tenders for the dropdown
@@ -88,7 +85,6 @@ public class AwardTenderServlet extends HttpServlet {
                     .forward(request, response);
 
         } catch (Exception e) {
-            e.printStackTrace();
             request.setAttribute("error", "Error loading award page: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/modals/award_contract.jsp")
                     .forward(request, response);

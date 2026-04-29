@@ -102,8 +102,7 @@ public class SubmitBidServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid tender ID");
         } catch (Exception e) {
-            request.setAttribute("formError", "An error occurred while loading the bid form.");
-            request.getRequestDispatcher("/WEB-INF/views/pages/error.jsp").forward(request, response);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error loading the bid form");
         }
     }
 

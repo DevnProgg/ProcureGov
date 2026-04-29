@@ -61,8 +61,7 @@ public class AwardServlet extends HttpServlet {
             } else if (pathInfo.equals("/my-awards")) {
                 // Supplier-specific awards
                 Object user = session.getAttribute("user");
-                if (user instanceof SupplierData) {
-                    SupplierData supplier = (SupplierData) user;
+                if (user instanceof SupplierData supplier) {
                     List<AwardDTO> awards = awardService.getAwardsBySupplierId(supplier.getSupplier_id());
                     request.setAttribute("awards", awards);
                     request.setAttribute("pageTitle", "My Awarded Contracts");
@@ -139,7 +138,6 @@ public class AwardServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error processing request: " + e.getMessage());
         }
     }
@@ -161,12 +159,10 @@ public class AwardServlet extends HttpServlet {
             try {
                 // Only procurement officers can create awards
                 Object user = session.getAttribute("user");
-                if (!(user instanceof EmployeeData)) {
+                if (!(user instanceof EmployeeData officer)) {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Only procurement officers can create awards");
                     return;
                 }
-
-                EmployeeData officer = (EmployeeData) user;
 
                 Award award = new Award();
                 award.setTender_id(Integer.parseInt(request.getParameter("tenderId")));
@@ -186,7 +182,6 @@ public class AwardServlet extends HttpServlet {
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
                 request.setAttribute("error", "Error creating award: " + e.getMessage());
                 doGet(request, response);
             }
@@ -209,7 +204,6 @@ public class AwardServlet extends HttpServlet {
             response.getOutputStream().flush();
 
         } catch (DocumentException e) {
-            e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error generating PDF");
         }
     }
@@ -237,7 +231,6 @@ public class AwardServlet extends HttpServlet {
             response.getOutputStream().flush();
 
         } catch (DocumentException e) {
-            e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error generating PDF");
         }
     }

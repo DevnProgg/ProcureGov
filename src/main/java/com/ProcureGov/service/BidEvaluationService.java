@@ -3,6 +3,7 @@ package com.ProcureGov.service;
 
 import com.ProcureGov.model.*;
         import com.ProcureGov.repository.BidEvaluationRepository;
+import com.ProcureGov.repository.EvaluationRepository;
 import com.ProcureGov.repository.TenderBidRepository;
 import com.ProcureGov.repository.TenderOfferRepository;
 import java.util.List;
@@ -11,10 +12,12 @@ public class BidEvaluationService {
 
     private final BidEvaluationRepository evaluationRepository;
     private final TenderOfferRepository tenderRepository;
+    private final EvaluationRepository evaluationRepositorylog;
 
     public BidEvaluationService() {
         this.evaluationRepository = new BidEvaluationRepository();
         this.tenderRepository = new TenderOfferRepository();
+        this.evaluationRepositorylog = new EvaluationRepository();
     }
 
     /**
@@ -110,6 +113,17 @@ public class BidEvaluationService {
                 throw new IllegalStateException("Something went wrong in updating the score");
             }
         }
+
+        //write the evaluation logs to the database
+        EvaluatorBidLog log = new EvaluatorBidLog();
+        log.setBid_id(bidId);
+        log.setEmployee_id(evaluatorId);
+        log.setPrice_score(priceScore);
+        log.setTechnical_compliance_score(technicalScore);
+        log.setDelivery_timeline_score(deliveryScore);
+        log.setWeighted_total(weightedTotal);
+        evaluationRepositorylog.create(log);
+
         // Check if all evaluators have completed
         checkAndUpdateTenderStatus(tenderId);
     }

@@ -4,21 +4,21 @@ import com.ProcureGov.backgroundtasks.TenderStatusManager;
 import com.ProcureGov.dto.AwardDTO;
 import com.ProcureGov.model.*;
 import com.ProcureGov.repository.AwardRepository;
+import com.ProcureGov.repository.MailMessageQueueRepository;
 import com.ProcureGov.util.EmailUtility;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 public class AwardService {
 
-    private static final Logger logger = Logger.getLogger(AwardService.class.getName());
     private final AwardRepository awardDAO;
     private final EmailUtility emailUtility;
+    private final MailMessageQueueRepository mailMessageQueueRepository;
 
     public AwardService() {
         this.awardDAO = new AwardRepository();
+        this.mailMessageQueueRepository = new MailMessageQueueRepository();
         this.emailUtility = new EmailUtility();
-
     }
 
     /**
@@ -27,13 +27,11 @@ public class AwardService {
     public boolean createAward(Award award) throws Exception{
         // Validate award data
         if (award.getTender_id() <= 0 || award.getBid_id() <= 0 || award.getAwarded_by() <= 0) {
-            logger.warning("Invalid award data for tender_id: " + award.getTender_id());
             return false;
         }
 
         // Check if award already exists for this tender
         if (awardDAO.hasAwardForTender(award.getTender_id())) {
-            logger.warning("Award already exists for tender_id: " + award.getTender_id());
             return false;
         }
 
@@ -44,7 +42,6 @@ public class AwardService {
             // Send email notification to the supplier
             TenderStatusManager.placeTenderCompleted(award.getTender_id());
             sendAwardNotificationEmail(award);
-            logger.info("Award created and notification sent for award_id: " + award.getAward_id());
         }
 
         return awardCreated;
@@ -54,19 +51,16 @@ public class AwardService {
      * Send email notification to supplier about the award
      */
     private void sendAwardNotificationEmail(Award award) throws Exception{
-        try {
             SupplierData supplier = getSupplierByBidId(award.getBid_id());
             TenderOffer tender = getTenderById(award.getTender_id());
 
             if (supplier == null || tender == null) {
-                logger.warning("Could not find supplier or tender details for award notification");
                 return;
             }
 
             // Validate supplier email
             String supplierEmail = supplier.getEmail();
             if (supplierEmail == null || supplierEmail.trim().isEmpty()) {
-                logger.warning("No email address found for supplier: " + supplier.getBusiness_name());
                 return;
             }
 
@@ -80,24 +74,7 @@ public class AwardService {
                     String.valueOf(award.getAward_id())
             );
 
-            // Send email asynchronously to avoid blocking
-            new Thread(() -> {
-                boolean emailSent = emailUtility.sendEmail(supplierEmail, subject, emailBody);
-                if (emailSent) {
-                    logger.info("Award notification email sent successfully to: " + supplierEmail);
-                    try {
-                        awardDAO.updateEmailSentStatus(award.getAward_id(), true);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    logger.warning("Failed to send award notification email to: " + supplierEmail);
-                }
-            }).start();
-
-        } catch (Exception e) {
-            logger.severe("Error sending award notification email: " + e.getMessage());
-        }
+            mailMessageQueueRepository.Enqueue(supplierEmail, subject, emailBody);
     }
 
     private SupplierData getSupplierByBidId(int bidId) throws Exception{
@@ -127,20 +104,6 @@ public class AwardService {
      */
     public List<AwardDTO> getRecentAwards(int limit) throws Exception{
         return awardDAO.getRecentAwards(limit);
-    }
-
-    /**
-     * Get award by ID
-     */
-    public Award getAwardById(int awardId) throws Exception {
-        return awardDAO.getAwardById(awardId);
-    }
-
-    /**
-     * Get award by tender ID
-     */
-    public Award getAwardByTenderId(int tenderId) throws Exception{
-        return awardDAO.getAwardByTenderId(tenderId);
     }
 
     /**
