@@ -20,14 +20,12 @@ public class OfficerDashboardController extends HttpServlet {
 
     private TenderService tenderService;
     private BidService bidService;
-    private ActivityService activityService;
     private EvaluationService evaluationService;
 
     @Override
     public void init() throws ServletException {
         this.tenderService = new TenderService();
         this.bidService = new BidService();
-        this.activityService = new ActivityService();
         this.evaluationService = new EvaluationService();
     }
 
@@ -57,7 +55,7 @@ public class OfficerDashboardController extends HttpServlet {
             setTenderStats(req);
 
             // Get recent activity
-            setRecentActivity(req);
+            setSampleActivity(req);
 
             // Get category distribution
             setCategoryDistribution(req);
@@ -137,41 +135,6 @@ public class OfficerDashboardController extends HttpServlet {
         req.setAttribute("totalValue", 0.0);
     }
 
-    private void setRecentActivity(HttpServletRequest req) {
-        try {
-            List<ActivityItem> activities = activityService.getRecentActivity(10);
-
-            if (activities != null && !activities.isEmpty()) {
-                List<Map<String, Object>> activityList = new ArrayList<>();
-
-                for (ActivityItem activity : activities) {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("title", activity.getTitle());
-                    item.put("description", activity.getDescription());
-                    item.put("icon", getActivityIcon(activity.getType()));
-                    item.put("type", activity.getType().toLowerCase());
-                    item.put("relativeTime", getRelativeTime(activity.getTimestamp()));
-
-                    // Add metadata tags if available
-                    if (activity.getCategory() != null) {
-                        List<Map<String, String>> tags = new ArrayList<>();
-                        Map<String, String> tag = new HashMap<>();
-                        tag.put("label", activity.getCategory());
-                        tag.put("type", getCategoryType(activity.getCategory()));
-                        tags.add(tag);
-                        item.put("metadata", tags);
-                    }
-
-                    activityList.add(item);
-                }
-
-                req.setAttribute("recentActivity", activityList);
-            }
-        } catch (Exception e) {
-            // Generate sample activity if service fails
-            setSampleActivity(req);
-        }
-    }
 
     private void setSampleActivity(HttpServletRequest req) {
         List<Map<String, Object>> activities = new ArrayList<>();
@@ -355,22 +318,6 @@ public class OfficerDashboardController extends HttpServlet {
     }
 
     // Utility methods
-    private String getActivityIcon(String type) {
-        if (type == null) return "circle";
-
-        return switch (type.toLowerCase()) {
-            case "creation", "create" -> "add_circle";
-            case "bid", "submission" -> "send";
-            case "evaluation", "evaluate" -> "rate_review";
-            case "award", "awarded" -> "verified";
-            case "close", "closed" -> "lock";
-            case "draft" -> "edit_note";
-            case "update", "edit" -> "edit";
-            case "delete", "cancel" -> "cancel";
-            case "warning", "alert" -> "warning";
-            default -> "circle";
-        };
-    }
 
     private String getCategoryType(String category) {
         if (category == null) return "general";
@@ -382,21 +329,5 @@ public class OfficerDashboardController extends HttpServlet {
             case "plumbing" -> "plumbing";
             default -> "general";
         };
-    }
-
-    private String getRelativeTime(Date date) {
-        if (date == null) return "";
-
-        long diff = System.currentTimeMillis() - date.getTime();
-        long minutes = diff / (1000 * 60);
-        long hours = minutes / 60;
-        long days = hours / 24;
-
-        if (minutes < 1) return "Just now";
-        if (minutes < 60) return minutes + "m ago";
-        if (hours < 24) return hours + "h ago";
-        if (days < 7) return days + "d ago";
-
-        return new SimpleDateFormat("MMM d").format(date);
     }
 }

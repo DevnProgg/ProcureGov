@@ -162,8 +162,6 @@ CREATE TABLE EmailMessageQueue(
     retry_count int default 0
 );
 
-ALTER TABLE TenderOffers ADD COLUMN evaluation_status VARCHAR(20) DEFAULT NULL;
-
 CREATE OR REPLACE VIEW view_employee_data AS
 SELECT
     a.account_id,
@@ -206,24 +204,6 @@ INSERT INTO Roles (name, privilege_level) VALUES
 ('PROCUREMENT_OFFICER',   'STAFF'),
 ('BOARD_MEMBER', 'STAFF'),
 ('SUPPLIER',  'EXTERNAL');
-
--- Add email notification tracking to awards table
-ALTER TABLE awards
-    ADD COLUMN email_notification_status VARCHAR(20) DEFAULT 'PENDING',
-    ADD COLUMN email_sent_at TIMESTAMP,
-    ADD COLUMN email_error_message TEXT;
-
--- Create activity log table for audit trail
-CREATE TABLE IF NOT EXISTS activity_logs (
-                                             id INT PRIMARY KEY AUTO_INCREMENT,
-                                             award_id INT,
-                                             activity_type VARCHAR(50),
-                                             status VARCHAR(20),
-                                             description TEXT,
-                                             created_by INT,
-                                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                             FOREIGN KEY (award_id) REFERENCES awards(award_id)
-);
 
 -- Seed Data for STAFF Users
 -- 1 Procurement Officer and 2 Board Members
