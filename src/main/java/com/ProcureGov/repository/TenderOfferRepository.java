@@ -1,7 +1,6 @@
 package com.ProcureGov.repository;
 
 import com.ProcureGov.dto.CategoryStatsDTO;
-import com.ProcureGov.dto.MonthlyStatsDTO;
 import com.ProcureGov.dto.TenderStatsDTO;
 import com.ProcureGov.model.TenderOffer;
 
@@ -43,10 +42,10 @@ public class TenderOfferRepository extends BaseRepository {
 
         String sql = "SELECT " +
                 "    COUNT(*) AS total_tenders, " +
-                "    SUM(CASE WHEN status = 'OPEN' AND expiry_datetime > NOW() THEN 1 ELSE 0 END) AS open_tenders, " +
-                "    SUM(CASE WHEN status = 'CLOSED' OR expiry_datetime <= NOW() THEN 1 ELSE 0 END) AS closed_tenders, " +
-                "    SUM(CASE WHEN status = 'UNDER_EVALUATION' THEN 1 ELSE 0 END) AS under_evaluation_tenders, " +
-                "    SUM(CASE WHEN status = 'AWARDED' THEN 1 ELSE 0 END) AS awarded_tenders, " +
+                "    SUM(IF(status = 'OPEN' AND expiry_datetime > NOW(), 1, 0)) AS open_tenders, " +
+                "    SUM(IF(status = 'CLOSED' OR expiry_datetime <= NOW(), 1, 0)) AS closed_tenders, " +
+                "    SUM(IF(status = 'UNDER_EVALUATION', 1, 0)) AS under_evaluation_tenders, " +
+                "    SUM(IF(status = 'AWARDED', 1, 0)) AS awarded_tenders, " +
                 "    SUM(estimated_value) AS total_estimated_value, " +
                 "    (SELECT COALESCE(SUM(awarded_value), 0) FROM Awards) AS awarded_value, " +
                 "    (SELECT COUNT(*) FROM TenderBids) AS total_bids_submitted, " +
@@ -81,7 +80,7 @@ public class TenderOfferRepository extends BaseRepository {
         String sql = "SELECT " +
                 "    category, " +
                 "    COUNT(*) AS tender_count, " +
-                "    SUM(CASE WHEN status = 'OPEN' AND expiry_datetime > NOW() THEN 1 ELSE 0 END) AS open_count, " +
+                "    SUM(IF(status = 'OPEN' AND expiry_datetime > NOW(), 1, 0)) AS open_count, " +
                 "    SUM(estimated_value) AS total_value, " +
                 "    AVG(estimated_value) AS avg_value " +
                 "FROM TenderOffers " +
@@ -475,9 +474,54 @@ public class TenderOfferRepository extends BaseRepository {
     Get all tenders by status
      */
     public List<TenderOffer> getTendersByStatus(String status) throws Exception {
-        return null;
+        List<TenderOffer> tenders = new ArrayList<>();
+
+        String sql = "SELECT * FROM TenderOffers WHERE status = ? ORDER BY publish_datetime DESC";
+
+        try (Connection conn = getDataSource().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, status);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    tenders.add(mapResultSetToTenderOffer(rs));
+                }
+            }
+        }
+
+        return tenders;
     }
 
-    public void update(TenderOffer tender) {
+    /**
+     * Update tender offer record
+     */
+    public void update(TenderOffer tender) throws Exception {
+        String sql = "UPDATE TenderOffers SET reference_number = ?, title = ?, description = ?, publish_datetime = ?, expiry_datetime = ?, created_by = ?, status = ?, category = ?, estimated_value = ?, notice_file_path = ? WHERE tender_id = ?";
+
+        try (Connection conn = getDataSource().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, tender.getReference_number());
+            stmt.setString(2, tender.getTitle());
+            stmt.setString(3, tender.getDescription());
+
+            // publish_datetime may be null for drafts
+            if (tender.getPublish_datetime() != null) {
+                stmt.setTimestamp(4, new Timestamp(tender.getPublish_datetime().getTime()));
+            } else {
+                stmt.setTimestamp(4, null);
+            }
+
+            stmt.setTimestamp(5, tender.getExpiry_datetime() != null ? new Timestamp(tender.getExpiry_datetime().getTime()) : null);
+            stmt.setInt(6, tender.getCreated_by());
+            stmt.setString(7, tender.getStatus());
+            stmt.setString(8, tender.getCategory());
+            stmt.setDouble(9, tender.getEstimated_value());
+            stmt.setString(10, tender.getNotice_file_path());
+            stmt.setInt(11, tender.getTender_id());
+
+            stmt.executeUpdate();
+        }
     }
 }

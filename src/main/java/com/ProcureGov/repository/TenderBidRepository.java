@@ -384,6 +384,18 @@ public class TenderBidRepository extends BaseRepository {
     }
 
     public boolean delete(int bidId, int supplierId) {
-        return false;
+        String sql = "DELETE FROM TenderBids WHERE bid_id = ? AND supplier_id = ?";
+
+        try (Connection conn = getDataSource().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, bidId);
+            stmt.setInt(2, supplierId);
+
+            int affected = stmt.executeUpdate();
+            return affected > 0;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 }
