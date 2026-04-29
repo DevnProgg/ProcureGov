@@ -20,7 +20,7 @@ import java.util.List;
         maxFileSize = 1024 * 1024 * 10,         // 10 MB
         maxRequestSize = 1024 * 1024 * 50       // 50 MB
 )
-public class SubmitBidServlet extends HttpServlet {
+public class SubmitBidController extends HttpServlet {
 
     private TenderService tenderService;
     private BidService bidService;

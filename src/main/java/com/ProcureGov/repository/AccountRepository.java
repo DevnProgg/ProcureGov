@@ -25,6 +25,23 @@ public class AccountRepository extends BaseRepository {
         return acc;
     }
 
+    public Account createAccount(Connection conn, Account acc) throws Exception {
+        String sql = "INSERT INTO Accounts (role_id, user_id, username, password_hash, active_status) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, acc.getRole_id());
+            stmt.setInt(2, acc.getUser_id());
+            stmt.setString(3, acc.getUsername());
+            stmt.setString(4, PasswordEncryption.hashPassword(acc.getPassword_hash()));
+            stmt.setBoolean(5, acc.isActive_status());
+            stmt.executeUpdate();
+
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) acc.setAccount_id(rs.getInt(1));
+            }
+        }
+        return acc;
+    }
+
     public LoginResult loginToAccount(String username, String password) throws Exception {
         String sql = "SELECT a.user_id, a.password_hash, r.name AS role_name " +
                 "FROM Accounts a " +

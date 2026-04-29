@@ -51,7 +51,7 @@
     </c:if>
 
     <%-- Updated form section of register.jsp --%>
-    <form action="${pageContext.request.contextPath}/auth/register" method="post">
+    <form action="${pageContext.request.contextPath}/auth/register" method="post" data-validate="true" data-min-password-length="8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div class="lg:col-span-8 space-y-12">
 

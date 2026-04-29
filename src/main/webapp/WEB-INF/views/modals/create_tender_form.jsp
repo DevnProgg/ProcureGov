@@ -87,7 +87,7 @@
                               method="post"
                               enctype="multipart/form-data"
                               id="tenderForm"
-                              novalidate>
+                              data-validate="true">
 
                             <c:if test="${isEdit}">
                                 <input type="hidden" name="tenderId" value="${tender.tender_id}" />

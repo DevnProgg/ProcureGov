@@ -86,3 +86,6 @@
     }
    };
 </script>
+
+<!-- Shared form helpers (sanitization & validation) -->
+<script src="${pageContext.request.contextPath}/js/form-helpers.js"></script>

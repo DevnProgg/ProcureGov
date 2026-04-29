@@ -43,6 +43,7 @@
 
                 <!-- Filter Form -->
                 <form method="get" action="${pageContext.request.contextPath}/app/tenders"
+                      data-validate="true"
                       style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
                     <select name="status" class="form-select" style="width:auto; padding:0.5rem 2rem 0.5rem 0.75rem; font-size:0.8125rem;">
                         <option value="" ${empty statusFilter ? 'selected' : ''}>All Statuses</option>

@@ -373,6 +373,16 @@ public class TenderOfferRepository extends BaseRepository {
         }
     }
 
+    public void updateStatus(Connection conn, int tenderId, String status) throws Exception {
+        String sql = "UPDATE TenderOffers SET status = ? WHERE tender_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, status);
+            stmt.setInt(2, tenderId);
+            stmt.executeUpdate();
+        }
+    }
+
     /**
      * Map ResultSet to TenderOffer object
      */

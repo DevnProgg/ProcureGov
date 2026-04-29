@@ -434,6 +434,7 @@
                                     <!-- Evaluation Form -->
                                     <form action="${pageContext.request.contextPath}/app/evaluations/submit-score"
                                           method="POST"
+                                          data-validate="true"
                                           onsubmit="return confirmEvaluation()">
 
                                         <input type="hidden" name="bidId" value="${bid.bid_id}"/>

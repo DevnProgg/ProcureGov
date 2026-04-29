@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @WebServlet("/app/evaluations/panel")
-public class EvaluationPanelServlet extends HttpServlet {
+public class EvaluationPanelController extends HttpServlet {
 
     private BidEvaluationService evaluationService;
     private TenderService tenderService;

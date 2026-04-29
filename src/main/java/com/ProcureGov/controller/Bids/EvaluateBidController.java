@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet(urlPatterns = {"/app/evaluations/evaluate", "/app/evaluations/submit-score"})
-public class EvaluateBidServlet extends HttpServlet {
+public class EvaluateBidController extends HttpServlet {
 
     private BidEvaluationService evaluationService;
     private TenderService tenderService;

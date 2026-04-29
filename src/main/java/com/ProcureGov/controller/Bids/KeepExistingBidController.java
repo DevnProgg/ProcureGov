@@ -9,7 +9,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 @WebServlet("/app/bids/keep-existing")
-public class KeepExistingBidServlet extends HttpServlet {
+public class KeepExistingBidController extends HttpServlet {
 
     private TenderService tenderService;
 

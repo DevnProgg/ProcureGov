@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 @WebServlet("/app/tenders/*")
-public class TenderDetailServlet extends HttpServlet {
+public class TenderDetailController extends HttpServlet {
 
     private TenderService tenderService;
     private BidService bidService;

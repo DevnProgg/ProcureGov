@@ -431,7 +431,7 @@
             <%-- Tender Selection Form (if no tender is pre-selected) --%>
             <c:if test="${empty tender}">
                 <div class="mb-6">
-                    <form method="get" action="${pageContext.request.contextPath}/app/officer/award" class="flex gap-3 items-end">
+                    <form method="get" action="${pageContext.request.contextPath}/app/officer/award" data-validate="true" class="flex gap-3 items-end">
                         <div class="form-group" style="flex:1; max-width:400px;">
                             <label class="form-label required" for="tenderSelect">Select Tender</label>
                             <select name="tenderId" id="tenderSelect" class="form-select" required
@@ -603,7 +603,7 @@
                                     <p>Complete the award details below</p>
                                 </div>
                                 <div class="award-form-body">
-                                    <form id="awardForm" method="post"
+                                    <form id="awardForm" method="post" data-validate="true"
                                           action="${pageContext.request.contextPath}/app/awards/create"
                                           onsubmit="return validateAwardForm()">
 

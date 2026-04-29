@@ -115,7 +115,7 @@
         <div style="display:grid; gap:1rem;">
 
           <!-- Option 1: Replace existing bid -->
-          <form action="${pageContext.request.contextPath}/app/bids/replace" method="post" style="margin:0;">
+          <form action="${pageContext.request.contextPath}/app/bids/replace" method="post" data-validate="true" style="margin:0;">
             <input type="hidden" name="existingBidId" value="${existingBid.bidId}"/>
             <input type="hidden" name="newTenderId" value="${newTender.tenderId}"/>
             <input type="hidden" name="action" value="replace"/>
@@ -138,7 +138,7 @@
           </form>
 
           <!-- Option 2: Keep existing bid -->
-          <form action="${pageContext.request.contextPath}/app/bids/keep-existing" method="post" style="margin:0;">
+          <form action="${pageContext.request.contextPath}/app/bids/keep-existing" method="post" data-validate="true" style="margin:0;">
             <input type="hidden" name="existingBidId" value="${existingBid.bidId}"/>
             <input type="hidden" name="newTenderId" value="${newTender.tenderId}"/>
             <input type="hidden" name="action" value="keep"/>

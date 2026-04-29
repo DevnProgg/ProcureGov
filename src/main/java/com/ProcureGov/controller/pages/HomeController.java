@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/home")
-public class HomeServlet extends HttpServlet {
+public class HomeController extends HttpServlet {
 
     private TenderService tenderService;
 

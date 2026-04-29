@@ -30,7 +30,7 @@ import java.util.UUID;
         maxFileSize = 1024 * 1024 * 5,       // 5 MB
         maxRequestSize = 1024 * 1024 * 5     // 5 MB
 )
-public class CreateTenderServlet extends HttpServlet {
+public class CreateTenderController extends HttpServlet {
 
     private TenderService tenderService;
     private static final String UPLOAD_DIR = "uploads" + File.separator + "notices";

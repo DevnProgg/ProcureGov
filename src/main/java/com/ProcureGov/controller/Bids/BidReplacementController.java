@@ -9,7 +9,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 @WebServlet("/app/bids/replace")
-public class BidReplacementServlet extends HttpServlet {
+public class BidReplacementController extends HttpServlet {
 
     private BidService bidService;
 

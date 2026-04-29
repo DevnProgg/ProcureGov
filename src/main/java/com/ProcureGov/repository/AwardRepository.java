@@ -41,6 +41,31 @@ public class AwardRepository extends BaseRepository{
         }
     }
 
+    public boolean createAward(Connection conn, Award award) throws Exception {
+        String sql = "INSERT INTO Awards (tender_id, bid_id, awarded_value, officer_justification, awarded_by) " +
+                "VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, award.getTender_id());
+            pstmt.setInt(2, award.getBid_id());
+            pstmt.setDouble(3, award.getAwarded_value());
+            pstmt.setString(4, award.getOfficer_justification());
+            pstmt.setInt(5, award.getAwarded_by());
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        award.setAward_id(rs.getInt(1));
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
     /**
      * Get award by ID
      */
@@ -312,6 +337,23 @@ public class AwardRepository extends BaseRepository{
         return null;
     }
 
+    public SupplierData getSupplierByBidId(Connection conn, int bidId) throws Exception {
+        String sql = "SELECT vsd.* FROM view_supplier_data vsd " +
+                "JOIN TenderBids tb ON vsd.supplier_id = tb.supplier_id " +
+                "WHERE tb.bid_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bidId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToSupplierData(rs);
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Get tender details by tender ID
      */
@@ -321,6 +363,21 @@ public class AwardRepository extends BaseRepository{
         try (Connection conn = getDataSource().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            stmt.setInt(1, tenderId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToTender(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    public TenderOffer getTenderById(Connection conn, int tenderId) throws Exception {
+        String sql = "SELECT * FROM TenderOffers WHERE tender_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, tenderId);
 
             try (ResultSet rs = stmt.executeQuery()) {

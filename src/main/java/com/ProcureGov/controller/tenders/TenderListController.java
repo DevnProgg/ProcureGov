@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @WebServlet("/app/tenders")
-public class TenderListServlet extends HttpServlet {
+public class TenderListController extends HttpServlet {
 
     private TenderService tenderService;
 

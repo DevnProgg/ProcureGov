@@ -1,22 +1,25 @@
 package com.ProcureGov.service;
 
-import com.ProcureGov.backgroundtasks.TenderStatusManager;
 import com.ProcureGov.dto.AwardDTO;
 import com.ProcureGov.model.*;
 import com.ProcureGov.repository.AwardRepository;
 import com.ProcureGov.repository.MailMessageQueueRepository;
+import com.ProcureGov.repository.TenderOfferRepository;
 import com.ProcureGov.util.EmailUtility;
 
+import java.sql.Connection;
 import java.util.List;
 
 public class AwardService {
 
     private final AwardRepository awardDAO;
+    private final TenderOfferRepository tenderOfferRepository;
     private final EmailUtility emailUtility;
     private final MailMessageQueueRepository mailMessageQueueRepository;
 
     public AwardService() {
         this.awardDAO = new AwardRepository();
+        this.tenderOfferRepository = new TenderOfferRepository();
         this.mailMessageQueueRepository = new MailMessageQueueRepository();
         this.emailUtility = new EmailUtility();
     }
@@ -35,33 +38,46 @@ public class AwardService {
             return false;
         }
 
-        // Create the award in the database
-        boolean awardCreated = awardDAO.createAward(award);
+        try (Connection conn = awardDAO.getConnection()) {
+            conn.setAutoCommit(false);
 
-        if (awardCreated) {
-            // Send email notification to the supplier
-            TenderStatusManager.placeTenderCompleted(award.getTender_id());
-            sendAwardNotificationEmail(award);
+            try {
+                boolean awardCreated = awardDAO.createAward(conn, award);
+                if (!awardCreated) {
+                    conn.rollback();
+                    return false;
+                }
+
+                tenderOfferRepository.updateStatus(conn, award.getTender_id(), "AWARDED");
+                sendAwardNotificationEmail(conn, award);
+
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         }
-
-        return awardCreated;
     }
 
     /**
      * Send email notification to supplier about the award
      */
-    private void sendAwardNotificationEmail(Award award) throws Exception{
-            SupplierData supplier = getSupplierByBidId(award.getBid_id());
-            TenderOffer tender = getTenderById(award.getTender_id());
+    private void sendAwardNotificationEmail(Connection conn, Award award) throws Exception{
+            SupplierData supplier = getSupplierByBidId(conn, award.getBid_id());
+            TenderOffer tender = getTenderById(conn, award.getTender_id());
 
-            if (supplier == null || tender == null) {
-                return;
+            if (supplier == null) {
+                throw new Exception("Unable to load supplier details for award notification");
+            }
+            if (tender == null) {
+                throw new Exception("Unable to load tender details for award notification");
             }
 
             // Validate supplier email
             String supplierEmail = supplier.getEmail();
             if (supplierEmail == null || supplierEmail.trim().isEmpty()) {
-                return;
+                throw new Exception("Supplier email is missing for award notification");
             }
 
             // Generate email content
@@ -74,15 +90,15 @@ public class AwardService {
                     String.valueOf(award.getAward_id())
             );
 
-            mailMessageQueueRepository.Enqueue(supplierEmail, subject, emailBody);
+            mailMessageQueueRepository.Enqueue(conn, supplierEmail, subject, emailBody);
     }
 
-    private SupplierData getSupplierByBidId(int bidId) throws Exception{
-        return awardDAO.getSupplierByBidId(bidId);
+    private SupplierData getSupplierByBidId(Connection conn, int bidId) throws Exception{
+        return awardDAO.getSupplierByBidId(conn, bidId);
     }
 
-    private TenderOffer getTenderById(int tenderId) throws Exception{
-        return awardDAO.getTenderById(tenderId);
+    private TenderOffer getTenderById(Connection conn, int tenderId) throws Exception{
+        return awardDAO.getTenderById(conn, tenderId);
     }
 
     /**

@@ -306,7 +306,7 @@ request.setAttribute("userRole", userRole);
       </div>
 
       <%-- Technical details (expandable) --%>
-      <c:if test="${not empty errorMessage && (statusCode >= 500 || not empty pageContext.errorData)}">
+      <c:if test="${not empty errorMessage && (statusCode >= 500 || not empty pageContext.errorData) && (empty sessionScope.user or sessionScope.user.role_name ne 'SUPPLIER')}">
         <button onclick="document.getElementById('errorDetails').classList.toggle('visible')"
                 class="btn btn-ghost btn-sm"
                 style="margin-top:1.5rem; width:100%; justify-content:center;">

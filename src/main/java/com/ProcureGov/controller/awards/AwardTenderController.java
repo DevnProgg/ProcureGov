@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/app/officer/award")
-public class AwardTenderServlet extends HttpServlet {
+public class AwardTenderController extends HttpServlet {
 
     private TenderService tenderService;
     private BidService bidService;

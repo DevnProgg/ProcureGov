@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/app/supplier/dashboard")
-public class SupplierDashboardServlet extends HttpServlet {
+public class SupplierDashboardController extends HttpServlet {
 
     private TenderService tenderService;
     private BidService bidService;

@@ -58,7 +58,7 @@
                         <form action="${pageContext.request.contextPath}/app/bids/submit"
                               method="post"
                               enctype="multipart/form-data"
-                              novalidate>
+                              data-validate="true">
 
                             <input type="hidden" name="tenderId" value="${tender.tender_id}"/>
 

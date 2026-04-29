@@ -66,7 +66,7 @@
                     <p style="font-size:0.875rem; color:var(--color-on-surface-variant); margin:0;">Sign in to continue to your dashboard</p>
                 </div>
 
-                <!-- Error -->
+                <!-- Server-side error -->
                 <c:if test="${not empty loginError}">
                     <div class="pg-alert pg-alert--error" style="margin-bottom:1.5rem;" role="alert">
                         <span class="material-symbols-outlined">lock</span>
@@ -74,8 +74,11 @@
                     </div>
                 </c:if>
 
+                <!-- Client-side validation error (hidden by default) -->
+                <div id="clientError" class="pg-alert pg-alert--error" style="margin-bottom:1.5rem; display:none;" role="alert" aria-live="assertive"></div>
+
                 <!-- Login Form -->
-                <form action="${pageContext.request.contextPath}/auth/login" method="post">
+                <form id="loginForm" action="${pageContext.request.contextPath}/auth/login" method="post" data-validate="true" data-min-password-length="8">
                     <div class="form-group">
                         <label class="form-label" for="email">Work Email</label>
                         <div class="form-input-icon">
@@ -118,6 +121,8 @@
                         Authorise Access
                     </button>
                 </form>
+
+                <!-- Client validation is handled by shared /js/form-helpers.js when data-validate="true" -->
 
                 <!-- Divider -->
                 <div style="display:flex; align-items:center; gap:1rem; margin:1.5rem 0;">

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 @WebServlet("/app/awards/*")
-public class AwardServlet extends HttpServlet {
+public class AwardController extends HttpServlet {
 
     private AwardService awardService;
 
