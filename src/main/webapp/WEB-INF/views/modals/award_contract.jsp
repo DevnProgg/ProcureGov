@@ -604,7 +604,7 @@
                                 </div>
                                 <div class="award-form-body">
                                     <form id="awardForm" method="post" data-validate="true"
-                                          action="${pageContext.request.contextPath}/app/awards/create"
+                                          action="${pageContext.request.contextPath}/app/awards"
                                           onsubmit="return validateAwardForm()">
 
                                         <input type="hidden" name="tenderId" value="${tender.tender_id}">

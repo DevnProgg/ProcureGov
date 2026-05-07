@@ -153,9 +153,6 @@ public class AwardController extends HttpServlet {
             return;
         }
 
-        String pathInfo = request.getPathInfo();
-
-        if ("/create".equals(pathInfo)) {
             try {
                 // Only procurement officers can create awards
                 Object user = session.getAttribute("user");
@@ -185,7 +182,6 @@ public class AwardController extends HttpServlet {
                 request.setAttribute("error", "Error creating award: " + e.getMessage());
                 doGet(request, response);
             }
-        }
     }
 
     /**

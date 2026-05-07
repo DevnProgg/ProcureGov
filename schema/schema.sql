@@ -155,7 +155,7 @@ CREATE TABLE EmailMessageQueue(
     email_id int primary key auto_increment,
     supplier_email varchar(100) not null,
     subject varchar(100) not null,
-    email_body varchar(255) not null,
+    email_body text not null,
     queued_at timestamp default current_timestamp,
     sent boolean default false,
     error_message varchar(255),

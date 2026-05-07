@@ -138,6 +138,7 @@ public class TenderBidRepository extends BaseRepository {
     public List<BidDetailDTO> findDetailedBidsByTenderId(int tenderId) throws Exception{
         List<BidDetailDTO> bids = new ArrayList<>();
 
+        // Aggregate evaluator scores per bid so the UI shows average scores (leaderboard) rather than individual evaluator rows
         String sql = "SELECT " +
                 "    b.bid_id, " +
                 "    b.tender_id, " +
@@ -150,17 +151,18 @@ public class TenderBidRepository extends BaseRepository {
                 "    s.reg_number, " +
                 "    s.email, " +
                 "    s.phone_number, " +
-                "    e.weighted_total AS evaluation_score, " +
-                "    e.price_score," +
-                "    e.delivery_score," +
-                "    e.technical_score," +
-                "    b.price," +
-                "IF(a.award_id IS NOT NULL, true, false) AS is_awarded " +
+                "    AVG(e.weighted_total) AS evaluation_score, " +
+                "    AVG(e.price_score) AS price_score, " +
+                "    AVG(e.delivery_score) AS delivery_score, " +
+                "    AVG(e.technical_score) AS technical_score, " +
+                "    b.price, " +
+                "    (COUNT(a.award_id) > 0) AS is_awarded " +
                 "FROM TenderBids b " +
                 "INNER JOIN Suppliers s ON b.supplier_id = s.supplier_id " +
-                "LEFT JOIN bidevaluations e ON b.bid_id = e.bid_id " +
+                "LEFT JOIN BidEvaluations e ON b.bid_id = e.bid_id " +
                 "LEFT JOIN Awards a ON b.bid_id = a.bid_id " +
                 "WHERE b.tender_id = ? " +
+                "GROUP BY b.bid_id, b.tender_id, b.supplier_id, b.delivery_days, b.compliance_statement, b.document_file_path, b.submitted_at, s.business_name, s.reg_number, s.email, s.phone_number, b.price " +
                 "ORDER BY b.submitted_at DESC";
 
         try (Connection conn = getDataSource().getConnection();
