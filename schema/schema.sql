@@ -229,5 +229,3 @@ INSERT INTO Accounts (role_id, user_id, username, password_hash, active_status) 
 
 -- Dolphie Ntsoele - Board Member
 (2, 3, 'dolphie.ntsoele@procure.gov.ls', 'TeltuL8+04lkZcZTae3bpA==:tU5ymx9nOZxLmGiKf4sof6v4HwoTF4NT+Z0rvRzThn0=', 1);
-
-

@@ -377,6 +377,13 @@ public class TenderBidRepository extends BaseRepository {
         bid.setTender_id(rs.getInt("tender_id"));
         bid.setSupplier_id(rs.getInt("supplier_id"));
         bid.setDelivery_days(rs.getInt("delivery_days"));
+        // price column exists in the TenderBids table; ensure we populate it here so evaluations and summaries work
+        try {
+            bid.setPrice(rs.getDouble("price"));
+        } catch (SQLException ex) {
+            // If for some reason the price column is missing in a query result, default to 0
+            bid.setPrice(0.0);
+        }
         bid.setCompliance_statement(rs.getString("compliance_statement"));
         bid.setDocument_file_path(rs.getString("document_file_path"));
         bid.setSubmitted_at(rs.getTimestamp("submitted_at"));

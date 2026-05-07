@@ -23,8 +23,8 @@ errorMessage = "An unexpected error occurred";
 %>
 
 <c:set var="statusCode" value="<%= statusCode %>" />
-<c:set var="errorMessage" value="<%= errorMessage != null ? errorMessage : "Unknown error" %>" />
-<c:set var="requestUri" value="<%= requestUri != null ? requestUri : "" %>" />
+<c:set var="errorMessage" value='<%= errorMessage != null ? errorMessage : "Unknown error" %>' />
+<c:set var="requestUri" value='<%= requestUri != null ? requestUri : "" %>' />
 
 <%-- Determine error type and appropriate messaging --%>
 <c:choose>

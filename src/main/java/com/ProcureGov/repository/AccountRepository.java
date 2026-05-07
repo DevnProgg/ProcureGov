@@ -62,4 +62,15 @@ public class AccountRepository extends BaseRepository {
         }
         return null;
     }
+
+    public boolean existsByUsername(String username) throws Exception {
+        String sql = "SELECT 1 FROM Accounts WHERE username = ? LIMIT 1";
+        try (Connection conn = getDataSource().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
 }

@@ -30,13 +30,24 @@
         </div>
 
         <!-- Warning Alert -->
-        <div class="pg-alert pg-alert--warning" style="margin-bottom:2rem;" role="alert">
-          <span class="material-symbols-outlined">warning</span>
-          <div>
-            <strong>Procurement Regulation 14-B:</strong> Suppliers may only have one active bid at a time.
-            Submitting a new bid will automatically withdraw your previous bid.
+        <c:if test="${bothOpen}">
+          <div class="pg-alert pg-alert--warning" style="margin-bottom:2rem;" role="alert">
+            <span class="material-symbols-outlined">warning</span>
+            <div>
+              <strong>Procurement Regulation 14-B:</strong> Suppliers may only have one active bid at a time.
+              Submitting a new bid will automatically withdraw your previous bid.
+            </div>
           </div>
-        </div>
+        </c:if>
+        <c:if test="${not bothOpen}">
+          <div class="pg-alert pg-alert--error" style="margin-bottom:2rem;" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            <div>
+              <strong>Cannot Switch Bids:</strong> You cannot switch your bid because at least one of the tenders is no longer open for submissions.
+              You must keep your existing bid if you wish to continue.
+            </div>
+          </div>
+        </c:if>
 
         <!-- Existing Bid Card -->
         <div class="pg-card" style="margin-bottom:1.5rem;">
@@ -114,28 +125,47 @@
         <!-- Action Options -->
         <div style="display:grid; gap:1rem;">
 
-          <!-- Option 1: Replace existing bid -->
-          <form action="${pageContext.request.contextPath}/app/bids/replace" method="post" data-validate="true" style="margin:0;">
-            <input type="hidden" name="existingBidId" value="${existingBid.bidId}"/>
-            <input type="hidden" name="newTenderId" value="${newTender.tenderId}"/>
-            <input type="hidden" name="action" value="replace"/>
+          <!-- Option 1: Replace existing bid (only if both tenders are open) -->
+          <c:if test="${bothOpen}">
+            <form action="${pageContext.request.contextPath}/app/bids/replace" method="post" data-validate="true" style="margin:0;">
+              <input type="hidden" name="existingBidId" value="${existingBid.bidId}"/>
+              <input type="hidden" name="newTenderId" value="${newTender.tenderId}"/>
+              <input type="hidden" name="action" value="replace"/>
 
-            <button type="submit" class="pg-card" style="width:100%; text-align:left; cursor:pointer; background:none; border:2px solid var(--color-primary); transition:all 0.2s;">
-              <div style="padding:1.25rem 1.5rem; display:flex; align-items:flex-start; gap:1rem;">
-                <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:2rem;">swap_horiz</span>
-                <div style="flex:1;">
-                  <div style="font-family:var(--font-headline); font-size:1.125rem; font-weight:700; color:var(--color-primary); margin-bottom:0.25rem;">
-                    Replace Existing Bid
+              <button type="submit" class="pg-card" style="width:100%; text-align:left; cursor:pointer; background:none; border:2px solid var(--color-primary); transition:all 0.2s;">
+                <div style="padding:1.25rem 1.5rem; display:flex; align-items:flex-start; gap:1rem;">
+                  <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:2rem;">swap_horiz</span>
+                  <div style="flex:1;">
+                    <div style="font-family:var(--font-headline); font-size:1.125rem; font-weight:700; color:var(--color-primary); margin-bottom:0.25rem;">
+                      Replace Existing Bid
+                    </div>
+                    <p style="font-size:0.8125rem; color:var(--color-on-surface-variant); margin:0;">
+                      Withdraw your current bid on <strong>${existingBid.tenderTitle}</strong>
+                      and proceed to submit a new bid for <strong>${newTender.title}</strong>.
+                    </p>
                   </div>
-                  <p style="font-size:0.8125rem; color:var(--color-on-surface-variant); margin:0;">
+                  <span class="material-symbols-outlined" style="color:var(--color-primary);">arrow_forward</span>
+                </div>
+              </button>
+            </form>
+          </c:if>
+          <c:if test="${not bothOpen}">
+            <div class="pg-card" style="width:100%; text-align:left; background:none; border:2px solid var(--color-outline-variant); opacity:0.5;">
+              <div style="padding:1.25rem 1.5rem; display:flex; align-items:flex-start; gap:1rem;">
+                <span class="material-symbols-outlined" style="color:var(--color-outline); font-size:2rem;">swap_horiz</span>
+                <div style="flex:1;">
+                  <div style="font-family:var(--font-headline); font-size:1.125rem; font-weight:700; color:var(--color-outline); margin-bottom:0.25rem;">
+                    Replace Existing Bid (Unavailable)
+                  </div>
+                  <p style="font-size:0.8125rem; color:var(--color-outline); margin:0;">
                     Withdraw your current bid on <strong>${existingBid.tenderTitle}</strong>
-                    and proceed to submit a new bid for <strong>${newTender.title}</strong>.
+                    and proceed to submit a new bid for <strong>${newTender.title}</strong> — not available because one tender is closed.
                   </p>
                 </div>
-                <span class="material-symbols-outlined" style="color:var(--color-primary);">arrow_forward</span>
+                <span class="material-symbols-outlined" style="color:var(--color-outline);">block</span>
               </div>
-            </button>
-          </form>
+            </div>
+          </c:if>
 
           <!-- Option 2: Keep existing bid -->
           <form action="${pageContext.request.contextPath}/app/bids/keep-existing" method="post" data-validate="true" style="margin:0;">

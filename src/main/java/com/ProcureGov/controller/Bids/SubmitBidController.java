@@ -73,21 +73,32 @@ public class SubmitBidController extends HttpServlet {
             // Check if supplier has ANY existing bid (not just on this tender)
             List<BidSummaryDTO> supplierBids = bidService.getSupplierBids(supplier.getSupplier_id());
 
-            // Filter for active bids (not awarded/evaluated - or define your own criteria)
+            // Filter for active bids on OPEN tenders
             BidSummaryDTO existingActiveBid = supplierBids.stream()
-                    .filter(bid -> !"AWARDED".equals(bid.getEvaluationStatus()))
+                    .filter(bid -> !"AWARDED".equals(bid.getEvaluationStatus()) && "OPEN".equals(bid.getTenderStatus()))
                     .findFirst()
                     .orElse(null);
 
             if (existingActiveBid != null) {
-                // Supplier has an existing bid - show the interstitial confirmation page
-                request.setAttribute("existingBid", existingActiveBid);
-                request.setAttribute("newTender", tender);
-                request.setAttribute("pageTitle", "Existing Bid Found");
+                // Supplier has an existing bid on an open tender
+                // Both this tender and the existing bid's tender must be OPEN to allow switching
+                if ("OPEN".equals(tender.getStatus())) {
+                    // Both tenders are open - show confirmation page with choice to keep or switch
+                    request.setAttribute("existingBid", existingActiveBid);
+                    request.setAttribute("newTender", tender);
+                    request.setAttribute("bothOpen", true);
+                    request.setAttribute("pageTitle", "Existing Bid Found");
 
-                request.getRequestDispatcher("/WEB-INF/views/modals/bid_replacement_confirmation.jsp")
-                        .forward(request, response);
-                return;
+                    request.getRequestDispatcher("/WEB-INF/views/modals/bid_replacement_confirmation.jsp")
+                            .forward(request, response);
+                    return;
+                } else {
+                    // New tender is closed - cannot switch bids
+                    session.setAttribute("errorMessage",
+                            "You already have an active bid on another tender. The tender you are trying to bid on is no longer open for submissions.");
+                    response.sendRedirect(request.getContextPath() + "/app/tenders");
+                    return;
+                }
             }
 
             // No existing bid - proceed to normal submission form

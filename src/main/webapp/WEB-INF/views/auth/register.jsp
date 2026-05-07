@@ -69,15 +69,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="businessName">Legal Business Name</label>
-                            <input name="businessName" id="businessName" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="text" value="${param.businessName}" required/>
+                                <input name="businessName" id="businessName" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="text" value="${businessName != null ? businessName : param.businessName}" required/>
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="reg_number">Registration Number</label>
-                            <input name="reg_number" id="reg_number" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="text" value="${param.reg_number}" required/>
+                            <input name="reg_number" id="reg_number" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="text" value="${reg_number != null ? reg_number : param.reg_number}" required/>
                         </div>
                         <div class="md:col-span-2 space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="address">Headquarters Address</label>
-                            <textarea name="address" id="address" rows="2" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" required>${param.address}</textarea>
+                            <textarea name="address" id="address" rows="2" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" required>${address != null ? address : param.address}</textarea>
                         </div>
                     </div>
                 </section>
@@ -89,11 +89,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="email">Official Email Address</label>
-                            <input name="email" id="email" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="email" value="${param.email}" required/>
+                            <input name="email" id="email" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="email" value="${email != null ? email : param.email}" required/>
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="phone_number">Phone Number</label>
-                            <input name="phone_number" id="phone_number" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="tel" value="${param.phone_number}" required/>
+                            <input name="phone_number" id="phone_number" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="tel" value="${phone_number != null ? phone_number : param.phone_number}" required/>
                         </div>
                     </div>
                 </section>
@@ -105,7 +105,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="username">Username</label>
-                            <input name="username" id="username" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="text" required/>
+                            <input name="username" id="username" class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" type="text" value="${username != null ? username : param.username}" required/>
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-label font-bold uppercase text-slate-500 tracking-tighter" for="password">Password</label>

@@ -8,7 +8,12 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
-@WebServlet("/app/bids/replace")
+// Note To self: SwitchBidController is the canonical handler for POST /app/bids/replace
+// to avoid duplicate servlet mapping annotations we change this controller's
+// mapping to a distinct URL. The view/form remains targeted at /app/bids/replace
+// and will be handled by SwitchBidController. Keep this servlet mapped to a
+// separate path for backward-compatibility or administrative usage.
+@WebServlet("/app/bids/replace-confirm")
 public class BidReplacementController extends HttpServlet {
 
     private BidService bidService;
