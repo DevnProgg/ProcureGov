@@ -106,7 +106,7 @@
                   ${newTender.title}
                 </div>
                 <div style="font-size:0.8125rem; color:var(--color-outline);">
-                  REF: ${newTender.referenceNumber}
+                  REF: ${newTender.reference_number}
                 </div>
               </div>
               <p style="font-size:0.875rem; color:var(--color-on-surface-variant); margin:0;">

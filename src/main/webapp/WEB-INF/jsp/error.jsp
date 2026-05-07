@@ -8,7 +8,6 @@
 Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
 String errorMessage = (String) request.getAttribute("javax.servlet.error.message");
 String requestUri = (String) request.getAttribute("javax.servlet.error.request_uri");
-Throwable exception = (Throwable) request.getAttribute("javax.servlet.error.exception");
 String servletName = (String) request.getAttribute("javax.servlet.error.servlet_name");
 
 if (statusCode == null) {
@@ -306,7 +305,7 @@ request.setAttribute("userRole", userRole);
       </div>
 
       <%-- Technical details (expandable) --%>
-      <c:if test="${not empty errorMessage && (statusCode >= 500 || not empty pageContext.errorData) && (empty sessionScope.user or sessionScope.user.role_name ne 'SUPPLIER')}">
+          <c:if test="${not empty errorMessage && (statusCode >= 500 || not empty pageContext.errorData) && (empty sessionScope.user or sessionScope.user.role_name ne 'SUPPLIER')}">
         <button onclick="document.getElementById('errorDetails').classList.toggle('visible')"
                 class="btn btn-ghost btn-sm"
                 style="margin-top:1.5rem; width:100%; justify-content:center;">
@@ -327,17 +326,17 @@ request.setAttribute("userRole", userRole);
             <dd>${requestUri}</dd>
           </c:if>
 
-          <c:if test="${not empty pageContext.errorData.servletName}">
+          <c:if test="${not empty servletName}">
             <dt>Servlet</dt>
-            <dd>${pageContext.errorData.servletName}</dd>
+            <dd>${servletName}</dd>
           </c:if>
 
-          <c:if test="${not empty pageContext.errorData.requestURI}">
+          <c:if test="${not empty requestUri}">
             <dt>Request URL</dt>
-            <dd>${pageContext.errorData.requestURI}</dd>
+            <dd>${requestUri}</dd>
           </c:if>
 
-          <c:if test="${not empty pageContext.exception}">
+          <c:if test="${not empty exception}">
             <dt>Exception Type</dt>
             <dd><%= exception != null ? exception.getClass().getName() : "" %></dd>
 
@@ -350,7 +349,13 @@ request.setAttribute("userRole", userRole);
                                 java.io.StringWriter sw = new java.io.StringWriter();
                                 java.io.PrintWriter pw = new java.io.PrintWriter(sw);
                                 exception.printStackTrace(pw);
-                                out.print(fn:escapeXml(sw.toString()));
+                                String stackTraceText = sw.toString()
+                                        .replace("&", "&amp;")
+                                        .replace("<", "&lt;")
+                                        .replace(">", "&gt;")
+                                        .replace("\"", "&quot;")
+                                        .replace("'", "&#39;");
+                                out.print(stackTraceText);
                             %></pre></dd>
             <% } %>
           </c:if>
