@@ -14,10 +14,14 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.List;
 
 @WebServlet(urlPatterns = {"/app/evaluations/evaluate", "/app/evaluations/submit-score"})
 public class EvaluateBidController extends HttpServlet {
+
+    private static final Logger logger = Logger.getLogger(EvaluateBidController.class.getName());
 
     private BidEvaluationService evaluationService;
     private TenderService tenderService;
@@ -56,8 +60,8 @@ public class EvaluateBidController extends HttpServlet {
             int evaluatorId = getUserId(user);
             String userRole = getUserRole(user);
 
-            // Check if user is authorized
-            if (isAuthorizedEvaluator(userRole)) {
+            // Check if user is authorized (only Procurement Officers and Board Members may evaluate)
+            if (!isAuthorizedEvaluator(userRole)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN,
                         "Only Procurement Officers and Evaluation Committee members can evaluate bids");
                 return;
@@ -127,6 +131,7 @@ public class EvaluateBidController extends HttpServlet {
             req.getRequestDispatcher("/WEB-INF/views/modals/evaluation_panel.jsp").forward(req, resp);
 
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error loading evaluation view", e);
             req.setAttribute("error", "Error loading evaluation: " + e.getMessage());
             req.getRequestDispatcher("/WEB-INF/views/modals/evaluation_panel.jsp").forward(req, resp);
         }
@@ -145,7 +150,7 @@ public class EvaluateBidController extends HttpServlet {
             String userRole = getUserRole(user);
 
             // Check authorization
-            if (isAuthorizedEvaluator(userRole)) {
+            if (!isAuthorizedEvaluator(userRole)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN,
                         "Only Procurement Officers and Evaluation Committee members can evaluate bids");
                 return;
@@ -194,14 +199,19 @@ public class EvaluateBidController extends HttpServlet {
             req.getRequestDispatcher("/WEB-INF/views/modals/evaluation_panel.jsp").forward(req, resp);
 
         } catch (Exception e) {
+            // Log full exception for server-side diagnostics and show a generic message to the user
+            logger.log(Level.SEVERE, "Unhandled exception while submitting evaluation", e);
             req.setAttribute("error", "An error occurred while submitting your evaluation. Please try again.");
             req.getRequestDispatcher("/WEB-INF/views/modals/evaluation_panel.jsp").forward(req, resp);
         }
     }
 
+    /**
+     * Return true if the supplied role is allowed to perform evaluations.
+     */
     private boolean isAuthorizedEvaluator(String role) {
-        return !"PROCUREMENT_OFFICER".equals(role) &&
-                !"BOARD_MEMBER".equals(role);
+        return "PROCUREMENT_OFFICER".equals(role) ||
+                "BOARD_MEMBER".equals(role);
     }
 
     private int getUserId(Object user) {

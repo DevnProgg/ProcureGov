@@ -7,6 +7,8 @@ import com.ProcureGov.repository.EvaluationRepository;
 import com.ProcureGov.repository.TenderBidRepository;
 import com.ProcureGov.repository.TenderOfferRepository;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BidEvaluationService {
 
@@ -19,6 +21,8 @@ public class BidEvaluationService {
         this.tenderRepository = new TenderOfferRepository();
         this.evaluationRepositorylog = new EvaluationRepository();
     }
+
+    private static final Logger logger = Logger.getLogger(BidEvaluationService.class.getName());
 
     /**
      * Get the current user's evaluation for a specific bid (convenience method)
@@ -50,7 +54,7 @@ public class BidEvaluationService {
     /**
      * Calculate weighted total: (Price × 0.40) + (Technical × 0.35) + (Delivery × 0.25)
      */
-    public double calculateWeightedTotal(double priceScore, double technicalScore, double deliveryScore) throws Exception {
+    public double calculateWeightedTotal(double priceScore, double technicalScore, double deliveryScore) {
         validateScore(priceScore, "Price score");
         validateScore(technicalScore, "Technical score");
         validateScore(deliveryScore, "Delivery score");
@@ -74,10 +78,8 @@ public class BidEvaluationService {
         // Validate technical score
         validateScore(technicalScore, "Technical score");
 
-        // Check if already evaluated
-        if (evaluationRepository.hasEvaluatorEvaluatedBid(evaluatorId, bidId)) {
-            throw new IllegalStateException("You have already evaluated this bid");
-        }
+        // Determine if this evaluator already has an evaluation for this bid
+        BidEvaluation existingEvaluation = evaluationRepository.getEvaluationByBidAndEvaluator(bidId, evaluatorId);
 
         // Get reference values for calculations
         double lowestBidAmount = evaluationRepository.getLowestBidAmount(tenderId);
@@ -90,10 +92,8 @@ public class BidEvaluationService {
         // Calculate weighted total
         double weightedTotal = calculateWeightedTotal(priceScore, technicalScore, deliveryScore);
 
-        //check is there is an evaluation already started in the database
-        List<BidEvaluation> bid = evaluationRepository.getEvaluationsByBid(bidId);
-
-        if (bid.isEmpty()) {
+        if (existingEvaluation == null) {
+            // create new evaluation for this evaluator & bid
             BidEvaluation evaluation = new BidEvaluation();
 
             evaluation.setBidId(bidId);
@@ -107,14 +107,13 @@ public class BidEvaluationService {
             // Save to database
             evaluationRepository.create(evaluation);
         } else {
-           BidEvaluation evaluation =  bid.getFirst();
-            //update record
-            if (!evaluationRepository.updateScores(evaluation.getEvaluationId(), priceScore,technicalScore, deliveryScore,  weightedTotal)){
+            // update existing evaluation for this evaluator
+            if (!evaluationRepository.updateScores(existingEvaluation.getEvaluationId(), priceScore, technicalScore, deliveryScore, weightedTotal)) {
                 throw new IllegalStateException("Something went wrong in updating the score");
             }
         }
 
-        //write the evaluation logs to the database
+        // write the evaluation logs to the database
         EvaluatorBidLog log = new EvaluatorBidLog();
         log.setBid_id(bidId);
         log.setEmployee_id(evaluatorId);
@@ -122,7 +121,13 @@ public class BidEvaluationService {
         log.setTechnical_compliance_score(technicalScore);
         log.setDelivery_timeline_score(deliveryScore);
         log.setWeighted_total(weightedTotal);
-        evaluationRepositorylog.create(log);
+        try {
+            // Use upsert so existing log rows are updated on resubmission instead of throwing unique-constraint errors
+            evaluationRepositorylog.upsert(log);
+        } catch (Exception ex) {
+            // Log and continue; evaluator should not see log failures as fatal for submission
+            logger.log(Level.SEVERE, "Failed to write/update evaluator bid log for bidId=" + bidId + " evaluatorId=" + evaluatorId, ex);
+        }
 
         // Check if all evaluators have completed
         checkAndUpdateTenderStatus(tenderId);
@@ -193,7 +198,7 @@ public class BidEvaluationService {
         return evaluationRepository.getEvaluatorsForTender(tenderId);
     }
 
-    private void validateScore(double score, String scoreName) throws Exception {
+    private void validateScore(double score, String scoreName) {
         if (score < 0 || score > 100) {
             throw new IllegalArgumentException(scoreName + " must be between 0 and 100");
         }
