@@ -11,4 +11,13 @@
             password="root"
             driverClassName="com.mysql.cj.jdbc.Driver"
             url="jdbc:mysql://localhost:3306/procure_gov?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;serverTimezone=UTC"/>
+
+    <Environment name="EMAIL_HOST" value="smtp.gmail.com" type="java.lang.String"/>
+    <Environment name="EMAIL_PORT" value="587" type="java.lang.Integer"/>
+    <Environment name="EMAIL_AUTH" value="true" type="java.lang.Boolean"/>
+    <Environment name="EMAIL_TLS" value="true" type="java.lang.Boolean"/>
+    <Environment name="EMAIL_USERNAME" value="devnprogg@gmail.com" type="java.lang.String"/>
+    <Environment name="EMAIL_PASSWORD" value="wnua eayy xgzv issz" type="java.lang.String"/>
+    <Environment name="EMAIL_FROM_ADDRESS" value="devnprogg@gmail.com" type="java.lang.String"/>
+    <Environment name="EMAIL_FROM_NAME" value="ProcureGov" type="java.lang.String"/>
 </Context>

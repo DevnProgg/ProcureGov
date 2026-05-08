@@ -3,36 +3,39 @@ package com.ProcureGov.util;
 import com.ProcureGov.model.SupplierData;
 import javax.mail.*;
 import javax.mail.internet.*;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.time.format.DateTimeFormatter;
 
 public class EmailUtility {
 
     private static final Logger logger = Logger.getLogger(EmailUtility.class.getName());
-    private static final DateTimeFormatter DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("dd MMMM yyyy");
 
     private final String host;
     private final int port;
     private final String username;
     private final String password;
+    private final String fromAddress;
+    private final String fromName;
     private final boolean useAuth;
     private final boolean useTLS;
 
     public EmailUtility() {
-        // Load from environment variables
-        this.host = System.getenv().getOrDefault("EMAIL_HOST", "smtp.gmail.com");
-        this.port = Integer.parseInt(System.getenv().getOrDefault("EMAIL_PORT", "587"));
-        this.username = "devnprogg@gmail.com";
-        this.password = "Lauren@2006";
-        this.useAuth = Boolean.parseBoolean(System.getenv().getOrDefault("EMAIL_AUTH", "true"));
-        this.useTLS = Boolean.parseBoolean(System.getenv().getOrDefault("EMAIL_TLS", "true"));
-
+        this.host = resolveString("EMAIL_HOST", "smtp.gmail.com");
+        this.port = resolvePort();
+        this.username = resolveString("EMAIL_USERNAME", null);
+        this.password = resolveString("EMAIL_PASSWORD", null);
+        this.fromAddress = firstNonBlank(resolveString("EMAIL_FROM_ADDRESS", null), this.username);
+        this.fromName = resolveString("EMAIL_FROM_NAME", "ProcureGov System");
+        this.useAuth = resolveEmailAuth();
+        this.useTLS = resolveEmailTls();
     }
 
     public boolean isConfigured() {
-        return username != null && password != null && !username.isEmpty() && !password.isEmpty();
+        boolean authReady = !useAuth || (isNotBlank(username) && isNotBlank(password));
+        return isNotBlank(host) && port > 0 && isNotBlank(fromAddress) && authReady;
     }
 
     /**
@@ -40,7 +43,8 @@ public class EmailUtility {
      */
     public boolean sendEmail(String to, String subject, String htmlBody) {
         if (!isConfigured()) {
-            logger.warning("Email service not configured. Cannot send email to: " + to);
+            logger.warning("Email service not configured. Cannot send email to: " + to +
+                    ". Set EMAIL_HOST, EMAIL_PORT, EMAIL_FROM_ADDRESS and, if auth is enabled, EMAIL_USERNAME/EMAIL_PASSWORD.");
             return false;
         }
 
@@ -56,16 +60,18 @@ public class EmailUtility {
         props.put("mail.smtp.timeout", "5000");
         props.put("mail.smtp.writetimeout", "5000");
 
-        Session session = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
-            }
-        });
+        Session session = useAuth
+                ? Session.getInstance(props, new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                })
+                : Session.getInstance(props);
 
         try {
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(username, "ProcureGov System"));
+            message.setFrom(new InternetAddress(fromAddress, fromName));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
             message.setSubject(subject);
             message.setContent(htmlBody, "text/html; charset=utf-8");
@@ -75,9 +81,81 @@ public class EmailUtility {
             return true;
 
         } catch (Exception e) {
-            logger.severe("Failed to send email to " + to + ": " + e.getMessage());
+            logger.log(Level.SEVERE, "Failed to send email to " + to, e);
+
+            if (looksLikeGmailAppPasswordIssue(e)) {
+                logger.severe("Gmail rejected the SMTP login. If this account uses 2-Step Verification, set EMAIL_PASSWORD to a Google App Password instead of the normal account password.");
+            }
             return false;
         }
+    }
+
+    private String resolveString(String key, String defaultValue) {
+        String value = trimToNull(System.getProperty(key));
+        if (value == null) {
+            value = trimToNull(System.getenv(key));
+        }
+        if (value == null) {
+            value = trimToNull(lookupJndiString(key));
+        }
+        return value != null ? value : defaultValue;
+    }
+
+    private int resolvePort() {
+        String value = resolveString("EMAIL_PORT", null);
+        if (value == null) {
+            return 587;
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            logger.warning("Invalid integer for EMAIL_PORT: " + value + ". Using default 587.");
+            return 587;
+        }
+    }
+
+    private boolean resolveEmailAuth() {
+        String value = resolveString("EMAIL_AUTH", null);
+        return value == null || Boolean.parseBoolean(value);
+    }
+
+    private boolean resolveEmailTls() {
+        String value = resolveString("EMAIL_TLS", null);
+        return value == null || Boolean.parseBoolean(value);
+    }
+
+    private String lookupJndiString(String key) {
+        try {
+            Object value = new InitialContext().lookup("java:comp/env/" + key);
+            return value != null ? value.toString() : null;
+        } catch (NamingException e) {
+            return null;
+        }
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static boolean isNotBlank(String value) {
+        return trimToNull(value) != null;
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        return isNotBlank(first) ? first : second;
+    }
+
+    private static boolean looksLikeGmailAppPasswordIssue(Throwable t) {
+        String message = t.getMessage();
+        if (message == null) {
+            return false;
+        }
+        return message.contains("534 5.7.9") || message.contains("Application-specific password required") || message.contains("InvalidSecondFactor");
     }
 
     /**
@@ -106,7 +184,7 @@ public class EmailUtility {
                         --font-headline: 'Newsreader', Georgia, serif;
                         --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
                     }
-                    
+
                     body {
                         margin: 0;
                         padding: 0;
@@ -115,13 +193,13 @@ public class EmailUtility {
                         color: #191c1d;
                         background: #f8f9fa;
                     }
-                    
+
                     .email-wrapper {
                         max-width: 600px;
                         margin: 0 auto;
                         padding: 32px 20px;
                     }
-                    
+
                     .email-card {
                         background: var(--color-surface-container-lowest);
                         border-radius: var(--radius-card);

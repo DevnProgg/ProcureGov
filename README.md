@@ -67,6 +67,8 @@ ProcureGov is a comprehensive web-based platform designed to streamline and auto
    - Execute the `schema/schema.sql` script in your MySQL instance to create the `procure_gov` database and tables.
 2. **Configuration:**
    - Update database connection details in `src/main/webapp/META-INF/context.xml` (or your local Tomcat `context.xml`).
+   - Configure SMTP settings in the same `context.xml` using `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USERNAME`, `EMAIL_PASSWORD`, `EMAIL_AUTH`, `EMAIL_TLS`, and optionally `EMAIL_FROM_ADDRESS` / `EMAIL_FROM_NAME`.
+   - If you use Gmail, `EMAIL_PASSWORD` must be a Google **App Password** when 2-Step Verification is enabled; your normal account password will be rejected with `534 5.7.9`.
 3. **Deploy:**
    - Copy the generated `target/ProcureGov-1.0-SNAPSHOT.war` to your Tomcat `webapps` directory.
 
