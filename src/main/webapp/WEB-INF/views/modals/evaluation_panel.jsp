@@ -343,7 +343,7 @@
                             <c:if test="${not empty bid.document_file_path}">
                                 <div class="bid-detail-row">
                                     <span class="bid-detail-label">Supporting Document</span>
-                                    <a href="${pageContext.request.contextPath}/app/bids/document?bidId=${bid.bid_id}"
+                                    <a href="${pageContext.request.contextPath}/${bid.document_file_path}"
                                        class="btn btn-tonal btn-sm" style="margin-left: auto;">
                                         <span class="material-symbols-outlined" style="font-size: 1rem;">download</span>
                                         Download

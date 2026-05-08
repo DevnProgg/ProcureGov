@@ -1,5 +1,6 @@
 package com.ProcureGov.controller.tenders;
 
+import com.ProcureGov.dto.BidSummaryDTO;
 import com.ProcureGov.model.*;
 import com.ProcureGov.service.*;
 import jakarta.servlet.ServletException;
@@ -27,6 +28,23 @@ public class SupplierTendersController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         try {
+            Object user = request.getSession(false) != null ? request.getSession(false).getAttribute("user") : null;
+            boolean hasActiveBid = false;
+            Integer activeBidTenderId = null;
+            if (user instanceof SupplierData supplier) {
+                List<BidSummaryDTO> supplierBids = new BidService().getSupplierBids(supplier.getSupplier_id());
+                for (BidSummaryDTO bid : supplierBids) {
+                    if (!"AWARDED".equals(bid.getEvaluationStatus())) {
+                        hasActiveBid = true;
+                        activeBidTenderId = bid.getTenderId();
+                        break;
+                    }
+                }
+            }
+
+            request.setAttribute("hasActiveBid", hasActiveBid);
+            request.setAttribute("activeBidTenderId", activeBidTenderId);
+
             if (pathInfo == null || pathInfo.equals("/")) {
                 // List all open tenders
                 List<TenderOffer> allTenders = tenderService.getAllOpenTenders();

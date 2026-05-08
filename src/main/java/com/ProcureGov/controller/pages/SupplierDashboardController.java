@@ -42,6 +42,11 @@ public class SupplierDashboardController extends HttpServlet {
             List<BidSummaryDTO> myBids = bidService.getSupplierBids(loggedInSupplier.getSupplier_id());
             request.setAttribute("myBids", myBids);
 
+            // Global one-active-bid rule
+            boolean hasActiveBid = myBids.stream()
+                    .anyMatch(bid -> !"AWARDED".equals(bid.getEvaluationStatus()));
+            request.setAttribute("hasActiveBid", hasActiveBid);
+
             // Check for success message from session
             String successMessage = (String) session.getAttribute("successMessage");
             if (successMessage != null) {

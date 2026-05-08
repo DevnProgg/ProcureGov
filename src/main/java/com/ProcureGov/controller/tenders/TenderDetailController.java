@@ -1,5 +1,6 @@
 package com.ProcureGov.controller.tenders;
 
+import com.ProcureGov.dto.BidSummaryDTO;
 import com.ProcureGov.model.*;
 import com.ProcureGov.service.*;
 import jakarta.servlet.ServletException;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/app/tenders/*")
 public class TenderDetailController extends HttpServlet {
@@ -57,6 +59,11 @@ public class TenderDetailController extends HttpServlet {
                 boolean hasBid = bidService.hasSupplierBidOnTender(supplier.getSupplier_id(), tenderId);
                 request.setAttribute("hasBid", hasBid);
                 request.setAttribute("userRole", "SUPPLIER");
+
+                List<BidSummaryDTO> supplierBids = bidService.getSupplierBids(supplier.getSupplier_id());
+                boolean hasActiveBid = supplierBids.stream()
+                        .anyMatch(b -> !"AWARDED".equals(b.getEvaluationStatus()));
+                request.setAttribute("hasActiveBid", hasActiveBid);
             }
 
             if ("DRAFT".equals(tender.getStatus())) {

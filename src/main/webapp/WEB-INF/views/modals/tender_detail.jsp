@@ -46,6 +46,12 @@
                                         Bid Submitted
                                     </span>
                                 </c:when>
+                                <c:when test="${hasActiveBid}">
+                                    <span class="badge badge--warning" style="padding: 0.625rem 1.25rem;">
+                                        <span class="material-symbols-outlined">lock</span>
+                                        Active Bid Locked
+                                    </span>
+                                </c:when>
                                 <c:otherwise>
                                     <a href="${pageContext.request.contextPath}/app/bids/submit?tenderId=${tender.tender_id}" class="btn btn-primary">
                                         <span class="material-symbols-outlined">send</span>

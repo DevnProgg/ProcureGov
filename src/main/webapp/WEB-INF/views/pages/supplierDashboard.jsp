@@ -90,10 +90,12 @@
                                         </div>
                                         <div style="margin-top:1rem; display:flex; gap:0.5rem;">
                                             <a href="${pageContext.request.contextPath}/app/supplier/tenders/${tender.tender_id}" class="btn btn-ghost btn-sm">View Details</a>
-                                            <a href="${pageContext.request.contextPath}/app/supplier/bids/submit?tenderId=${tender.tender_id}" class="btn btn-primary btn-sm">
-                                                <span class="material-symbols-outlined">send</span>
-                                                Submit Bid
-                                            </a>
+                                            <c:if test="${not hasActiveBid}">
+                                                <a href="${pageContext.request.contextPath}/app/bids/submit?tenderId=${tender.tender_id}" class="btn btn-primary btn-sm">
+                                                    <span class="material-symbols-outlined">send</span>
+                                                    Submit Bid
+                                                </a>
+                                            </c:if>
                                         </div>
                                     </div>
                                 </c:forEach>

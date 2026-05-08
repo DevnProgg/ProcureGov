@@ -1,5 +1,6 @@
 package com.ProcureGov.controller.tenders;
 
+import com.ProcureGov.dto.BidSummaryDTO;
 import com.ProcureGov.model.*;
 import com.ProcureGov.service.*;
 import jakarta.servlet.ServletException;
@@ -62,6 +63,21 @@ public class TenderListController extends HttpServlet {
                         .collect(Collectors.toList());
             }
 
+            // Supplier-level bid lock: hide Submit Bid everywhere until their current active bid is awarded
+            boolean hasActiveBid = false;
+            Integer activeBidTenderId = null;
+            Object user = session != null ? session.getAttribute("user") : null;
+            if (user instanceof SupplierData supplier) {
+                List<BidSummaryDTO> supplierBids = new BidService().getSupplierBids(supplier.getSupplier_id());
+                for (BidSummaryDTO bid : supplierBids) {
+                    if (!"AWARDED".equals(bid.getEvaluationStatus())) {
+                        hasActiveBid = true;
+                        activeBidTenderId = bid.getTenderId();
+                        break;
+                    }
+                }
+            }
+
             // Get all unique categories for filter dropdown
             List<String> categories = tenderService.getAllCategories();
 
@@ -71,6 +87,8 @@ public class TenderListController extends HttpServlet {
             request.setAttribute("statusFilter", statusFilter != null ? statusFilter : "");
             request.setAttribute("catFilter", categoryFilter != null ? categoryFilter : "");
             request.setAttribute("totalCount", tenders.size());
+            request.setAttribute("hasActiveBid", hasActiveBid);
+            request.setAttribute("activeBidTenderId", activeBidTenderId);
 
             // Get user info for conditional rendering
             if (session != null) {

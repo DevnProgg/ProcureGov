@@ -111,7 +111,7 @@
                                             View Details
                                         </a>
                                         <%-- Show Submit Bid only if OPEN and user is a SUPPLIER --%>
-                                        <c:if test="${tender.status eq 'OPEN' and sessionScope.user.role_name eq 'SUPPLIER'}">
+                                        <c:if test="${tender.status eq 'OPEN' and sessionScope.user.role_name eq 'SUPPLIER' and not hasActiveBid}">
                                             <a href="${pageContext.request.contextPath}/app/bids/submit?tenderId=${tender.tender_id}" class="btn btn-primary btn-sm">
                                                 <span class="material-symbols-outlined">send</span>
                                                 Submit Bid

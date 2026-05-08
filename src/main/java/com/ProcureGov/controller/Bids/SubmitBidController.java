@@ -70,35 +70,13 @@ public class SubmitBidController extends HttpServlet {
                 return;
             }
 
-            // Check if supplier has ANY existing bid (not just on this tender)
-            List<BidSummaryDTO> supplierBids = bidService.getSupplierBids(supplier.getSupplier_id());
-
-            // Filter for active bids on OPEN tenders
-            BidSummaryDTO existingActiveBid = supplierBids.stream()
-                    .filter(bid -> !"AWARDED".equals(bid.getEvaluationStatus()) && "OPEN".equals(bid.getTenderStatus()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (existingActiveBid != null) {
-                // Supplier has an existing bid on an open tender
-                // Both this tender and the existing bid's tender must be OPEN to allow switching
-                if ("OPEN".equals(tender.getStatus())) {
-                    // Both tenders are open - show confirmation page with choice to keep or switch
-                    request.setAttribute("existingBid", existingActiveBid);
-                    request.setAttribute("newTender", tender);
-                    request.setAttribute("bothOpen", true);
-                    request.setAttribute("pageTitle", "Existing Bid Found");
-
-                    request.getRequestDispatcher("/WEB-INF/views/modals/bid_replacement_confirmation.jsp")
-                            .forward(request, response);
-                    return;
-                } else {
-                    // New tender is closed - cannot switch bids
-                    session.setAttribute("errorMessage",
-                            "You already have an active bid on another tender. The tender you are trying to bid on is no longer open for submissions.");
-                    response.sendRedirect(request.getContextPath() + "/app/tenders");
-                    return;
-                }
+            // Enforce one-active-bid rule: if supplier has any active (non-awarded) bid, block new submissions
+            Integer activeBidTenderId = getActiveBidTenderId(supplier.getSupplier_id());
+            if (activeBidTenderId != null) {
+                session.setAttribute("errorMessage",
+                        "You already have an active bid on another tender and cannot submit a new bid until that tender is awarded.");
+                response.sendRedirect(request.getContextPath() + "/app/supplier/dashboard");
+                return;
             }
 
             // No existing bid - proceed to normal submission form
@@ -153,6 +131,17 @@ public class SubmitBidController extends HttpServlet {
             // Re-validate tender is still open
             if (tender == null || !"OPEN".equals(tender.getStatus())) {
                 request.setAttribute("formError", "This tender is no longer open for submissions.");
+                request.setAttribute("tender", tender);
+                forwardWithPreviousInput(request, response, tenderIdParam, bidAmountParam,
+                        deliveryDaysParam, complianceStatement);
+                return;
+            }
+
+            // Enforce one-active-bid rule on POST as well, so direct requests cannot bypass the UI
+            Integer activeBidTenderId = getActiveBidTenderId(supplier.getSupplier_id());
+            if (activeBidTenderId != null) {
+                request.setAttribute("formError",
+                        "You already have an active bid on another tender and cannot submit a new bid until that tender is awarded.");
                 request.setAttribute("tender", tender);
                 forwardWithPreviousInput(request, response, tenderIdParam, bidAmountParam,
                         deliveryDaysParam, complianceStatement);
@@ -289,5 +278,17 @@ public class SubmitBidController extends HttpServlet {
         request.setAttribute("tenderId", tenderId);
 
         request.getRequestDispatcher("/WEB-INF/views/modals/bid_submission_form.jsp").forward(request, response);
+    }
+
+    /**
+     * Returns the tender ID of the supplier's first active bid, or null if none exists.
+     */
+    private Integer getActiveBidTenderId(int supplierId) throws Exception {
+        List<BidSummaryDTO> supplierBids = bidService.getSupplierBids(supplierId);
+        return supplierBids.stream()
+                .filter(bid -> !"AWARDED".equals(bid.getEvaluationStatus()))
+                .map(BidSummaryDTO::getTenderId)
+                .findFirst()
+                .orElse(null);
     }
 }
